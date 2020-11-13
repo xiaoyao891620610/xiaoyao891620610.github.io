@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xiaoyao891620610.github.io</id>
-    <title>Gridea</title>
-    <updated>2020-11-13T01:35:15.214Z</updated>
+    <title>萧瑟</title>
+    <updated>2020-11-13T01:36:43.775Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xiaoyao891620610.github.io"/>
     <link rel="self" href="https://xiaoyao891620610.github.io/atom.xml"/>
     <subtitle>温故而知新</subtitle>
     <logo>https://xiaoyao891620610.github.io/images/avatar.png</logo>
     <icon>https://xiaoyao891620610.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2020, Gridea</rights>
+    <rights>All rights reserved 2020, 萧瑟</rights>
     <entry>
         <title type="html"><![CDATA[Hello Gridea]]></title>
         <id>https://xiaoyao891620610.github.io/post/hello-gridea/</id>
