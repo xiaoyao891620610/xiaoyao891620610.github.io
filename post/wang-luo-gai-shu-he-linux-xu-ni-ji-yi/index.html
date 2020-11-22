@@ -8,7 +8,7 @@
 <meta name="keywords" content="Security">
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
-<title>萧瑟</title>
+<title>计算机网络概述 | 萧瑟</title>
 <link rel="shortcut icon" href="/favicon.ico?v=1606047894940">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
@@ -38,7 +38,8 @@
 
 
 
-  <meta name="description" content="温故而知新">
+  <meta name="description" content="计算机网络概述" />
+  <meta name="keywords" content="计算机基础" />
 </head>
 
 <body>
@@ -87,7 +88,7 @@
             
               
             
-            <li class="nav-item nav-item-active">
+            <li class="nav-item ">
               
               
                 <a href="/archives/" target="_self">
@@ -171,132 +172,265 @@
   <div class="main-continer">
     
     <div
-      class="section-layout  gemini">
+      class="section-layout gemini ">
       <div class="section-layout-wrapper">
-        <div id="sidebarMeta" class="sidebar">
-    
-<div class="sidebar-wrapper box-shadow-wrapper bg-color">
-  <div class="sidebar-item">
-    <img class="site-author-image right-motion" src="/images/avatar.png"/>
-    <p class="site-author-name">萧瑟</p>
-    
-    <div class="site-description right-motion">
-      
-      
-      
-        <p>这个人很懒，什么都不想写。。。。</p>
-      
-      
-    </div>
-    
-  </div>
-  <div class="sidebar-item side-item-stat right-motion">
-    <div class="sidebar-item-box">
-      <a href="/archives/">
         
-        <span class="site-item-stat-count">2</span>
-        <span class="site-item-stat-name language" data-lan="article">文章</span>
-      </a>
-    </div>
-    <div class="sidebar-item-box">
-      <a href="">
-        <span class="site-item-stat-count">2</span>
-        <span class="site-item-stat-name language" data-lan="category">分类</span>
-      </a>
-    </div>
-    <div class="sidebar-item-box">
-      <a href="/tags/">
-        <span class="site-item-stat-count">2</span>
-        <span class="site-item-stat-name language" data-lan="tag">标签</span>
-      </a>
-    </div>
-  </div>
-  
-    
-  
-  
 
-
-
-</div>
+<div class="sidebar">
+  
 </div>
 <script>
-  let sidebarMeta = document.querySelector('#sidebarMeta');
-  let scheme = 'gemini';
-  let sidebarWrapper = document.querySelector('.sidebar-wrapper');
-  if (sidebarMeta && (scheme === 'pisces' || scheme === 'gemini')) {
-    document.addEventListener('scroll', function(e) {
-      if (document.scrollingElement.scrollTop > parseInt(sidebarMeta.style.marginTop) + 10) {
-        sidebarWrapper.classList.add('home-sidebar-fixed')
-      } else {
-        sidebarWrapper.classList.remove('home-sidebar-fixed')
-      }
-    });
-  }
-  </script>
-        <div class="section-box box-shadow-wrapper">
-          <section class="section archives-section bg-color posts-expand">
-            
+  const SIDEBAR_TITLE_ACTIVE = 'sidebar-title-active';
+  const SIDEBAR_BODY_ACTIVE = 'sidebar-body-active';
+  const SLIDE_UP_IN = 'slide-up-in';
 
-<div class="bg-color">
-  <div class="archive-timeline-box">
-    <div class="archive-timeline-title">
-      
-        <h2 class="language" data-lan="archives" data-count="2">非常好！目前共计2篇日志，继续努力！</h2>
-      
-    </div>
+  let sidebar = document.querySelector('#sidebar'),
+  tocSideBar = document.querySelector('#tocSideBar'),
+  metaSideBar = document.querySelector('#metaSideBar'),
+  postToc = document.querySelector('#post_toc'),
+  postSiteMeta = document.querySelector('#post_side_meta'),
+  sidebarTitle = document.querySelector('.sidebar-title'),
+  sidebarBody = document.querySelector('#sidebar_body');
+
+  tocSideBar && tocSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  metaSideBar && metaSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  function toggleSidebar(e) {
+    let currentTitle = document.querySelector("."+SIDEBAR_TITLE_ACTIVE);
+    if (currentTitle == e.srcElement) {
+      return ;
+    }
+    let current, showElement, hideElement;
+    if (e.srcElement == metaSideBar) {
+      showElement = postSiteMeta;
+      hideElement = postToc;
+    } else if (e.srcElement == tocSideBar){
+      showElement = postToc;
+      hideElement = postSiteMeta;
+    }
+    currentTitle.classList.remove(SIDEBAR_TITLE_ACTIVE);
+    e.srcElement.classList.add(SIDEBAR_TITLE_ACTIVE);
+
+    window.Velocity(hideElement, 'stop');
+    window.Velocity(hideElement, 'transition.slideUpOut', {
+      display: 'none',
+      duration: 200,
+      complete: function () {
+        window.Velocity(showElement, 'transition.slideDownIn', {
+          duration: 200
+        });
+      }
+    })
+    hideElement.classList.remove(SIDEBAR_BODY_ACTIVE);
+    showElement.classList.add(SIDEBAR_BODY_ACTIVE);
+  }
+
+  postToc && postToc.addEventListener('transitionend', function() {
+    this.classList.remove(SLIDE_UP_IN);
+  });
+
+  if (sidebarBody) {
+    if (sidebarBody.classList.contains('pisces') || sidebarBody.classList.contains('gemini')) {
+      let hasFix = false;
+      let scrollEl = document.querySelector('.main-continer');
+      let limitTop = document.querySelector('#nav_ul').children.length * 42 + 162;
+      window.addEventListener('scroll', function(e) {
+        if (document.scrollingElement.scrollTop >= limitTop) {
+          if (!hasFix) {
+            sidebar.classList.add('sidebar-fixed');
+            hasFix = true;
+          }
+        } else {
+          if (hasFix) {
+            sidebar.classList.remove('sidebar-fixed');
+            hasFix = false;
+          }
+        }
+      });
+    }
+  }
+  
+</script>
+        <div class="section-box box-shadow-wrapper">
+          <div class="section bg-color post post-page">
+            <section class="post-header">
+  <h1 class="post-title">
+    <a class="post-title-link" href="https://xiaoyao891620610.github.io/post/wang-luo-gai-shu-he-linux-xu-ni-ji-yi/">
+      计算机网络概述
+    </a>
+  </h1>
+  <div class="post-meta">
     
-      
-      
-        <div class="node-title">
-          <h2 class="tag-year">2020</h2>
-        </div>    
-        
-      
-      <a href="https://xiaoyao891620610.github.io/post/wang-luo-gai-shu-he-linux-xu-ni-ji-yi/">
-        <div class="motion-warpper tag-archive-node">
-          <div class="tag-node">
-            <h1>
-              11-20
-              <small>计算机网络概述</small>
-            </h1>
-          </div>  
-      </div>
-      </a>
+    <span class="meta-item pc-show">
+      <i class="fa fa-calendar-o"></i>
+      <span class="language" data-lan="publish">发布于</span>
+      <span class="publish-time" data-t="2020-11-20 15:42:18">2020-11-20</span>
+      <span class="post-meta-divider pc-show">|</span>
+    </span>
     
+    <span class="meta-item">
+      <i class="fa fa-folder-o"></i>
+      <span class="pc-show language" data-lan="category-in">分类于</span>
       
       
-      <a href="https://xiaoyao891620610.github.io/post/ni-jin-li-liao-ma-lai-zi-zhong-guo-zhu-ming-wang-luo-an-quan-zhuan-jia-xiao-si-scz/">
-        <div class="motion-warpper tag-archive-node">
-          <div class="tag-node">
-            <h1>
-              11-13
-              <small>你尽力了吗? (来自中国著名网络安全专家小四scz)</small>
-            </h1>
-          </div>  
-      </div>
+      <a href="https://xiaoyao891620610.github.io/tag/7kmLrwibZ/">
+        <span>计算机基础</span>
       </a>
+      
+      
+    </span>
+    <span class="post-meta-divider">|</span>
+    
+    <span class="meta-item">
+      <i class="fa fa-clock-o"></i>
+      <span>4<span class="language" data-lan="minute">分钟</span></span>
+    </span>
+    <span class="meta-item">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-file-word-o"></i>
+      <span>936<span class="pc-show language" data-lan="words">字数</span></span>
+    </span>
     
   </div>
-  
-<div class="page bg-color">
-  <ul class="pagination-ul">
-    
-    
-      
-        <li class="pagination-li pagination-active">
-            <a href="/archives/page/../">
-              1
-            </a>
-        </li>
-      
-    
-    
-  </ul>
-</div>
-</div>
+</section>
+            <div class="post-body next-md-body" id="post_body">
+              <p>记录，本章是整个计算机网络的概述，后面会具体有五层协议的体系结构。</p>
+<p>互联网的组成<br>
+互联网的组成是非常复杂的，但是根据它的工作方式我们可以分成两部分：核心部分和边缘部分<br>
+　　１. 边缘部分：由所有连接在互联网上的主机组成。这部分是用户直接使用的，用来进行通信（传送数据、音频或视频）和资源共享。<br>
+　　２. 核心部分：有大量网络和连接这些网络的路由器组成。这部分是为边缘部分提供服务的（提供连通性和交换）。<br>
+　　两种工作模式的示意图。<br>
+<img src="https://xiaoyao891620610.github.io/post-images/1605861195301.jpg" alt="" loading="lazy"><br>
+　　<br>
+<strong>互联网的边缘部分：</strong><br>
+　　是连接在互联网上的所有主机，称为端系统(end system）。可以是笔记本电脑，平板，网络摄像头。拥有者可以是个人，企业，甚至是ISP。<br>
+　　其它的概念型的东西不好写太多，自己记住就好了。既然是说计算机那么就要知道主机之间是怎么通信的。<br>
+　　１.客户－服务器方式（Clent/Server -- C/S）原理图<br>
+<img src="https://xiaoyao891620610.github.io/post-images/1605862370955.jpg" alt="" loading="lazy"><br>
+　　２．对等连接方式（Peer-to-Peer -- P2P）原理图<br>
+<img src="https://xiaoyao891620610.github.io/post-images/1605948572968.png" alt="" loading="lazy"><br>
+　　其实P2P的本质还是C/S，只是对等连接中的每一台主机既是客户又是服务器。如图所示可以看出来客户在请求别的服务器的同时也提供着服务。那么这种主机的通信方式有点非常的明显，例如：<strong>快播</strong>。一个节点损坏不影响其它节点继续下载电影。我们可以通过很多的节点去下载1G的电影的小片段，最后重组在一起。所以是下载的人越多，下载的就越快，压根不存在带宽不够的情况。所以这种情况服务器得省很多钱，没必要花大价钱加带宽了。</p>
+<!-- more -->
+<!-- more -->
+<p><strong>互联网的核心部分：</strong><br>
+　　电路交换（Circuit Switching）:例：打电话  建立连接（申请占用通信资源）-&gt;通话（一直占用通信资源）-&gt;释放连接（释放通信资源），电路交换适用于数据量很大的实时性传输：核心路由器之间可以使用电路交换。<br>
+<img src="https://xiaoyao891620610.github.io/post-images/1605948188035.jpg" alt="" loading="lazy"><br>
+　　　　　　　　　　　　　　　　　　　电路交换示意图</p>
+<p>​　　报文交换（Message Switcing）：报文一般比分组长的多，报文交换的时延较长<br>
+​　　分组交换（Packet Switcing）：采用存储转发技术，是把一个报文拆分为几个分组后再进行传送。优点：高效，灵活，迅速，可靠  问题：时延，开销<br>
+<img src="https://xiaoyao891620610.github.io/post-images/1605948123122.jpg" alt="" loading="lazy"><br>
+　　　　　　　　　　　　　　　　　以分组为基本单位在网络中传输</p>
+<p><img src="https://xiaoyao891620610.github.io/post-images/1605948852329.jpg" alt="" loading="lazy"><br>
+　　　　　　　　　　　　　　　　　三种交换方式的比较</p>
+<p>计算机网络的体系结构<br>
+　　具有五层协议的体系结构：<br>
+　　应用层（Application）：通过应用程序间的交互来完成特定的网络任务。应用层交互的数据单元成为报文（message）。应用层协议：HTTP,SMTP,DNS。<br>
+　　运输层（Transport）：两台主机中进程之间的通信提供通用的数据传输服务。运输层主要使用两种协议，TCP协议和UDP协议。<br>
+　　×传输控制协议TCP——提供面向连接的，可靠的数据传输服务，单位是报文段。<br>
+　　×用户数据包协议ＵDP——提供无连接的，尽最大努力的数据传输服务，不保证数据传输的可靠性，单位是用户数据报。<br>
+　　网络层（Network）:为分组交换网上的不同主机提供通信服务。比如IP地址选址，选择最佳路径。<br>
+　　数据链路层（Data Link）： 数据如何封装  添加物理层地址（MAC地址）<br>
+　　​物理层（Physical）：电压，接口标准（比如网线）<br>
+<img src="https://xiaoyao891620610.github.io/post-images/1606047565974.jpg" alt="" loading="lazy"></p>
+<p></p>
 
-          </section>
+            </div>
+            
+              <div class="reward-btn">
+                <div class="reward-btn-text">赞赏</div>
+              </div>
+            
+            
+              <div class="post-footer">
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong class="language" data-lan="author">本文作者：</strong>
+      萧瑟
+    </li>
+    <li class="post-copyright-link">
+      <strong class="language" data-lan="link">本文链接：</strong>
+      <a href="https://xiaoyao891620610.github.io/post/wang-luo-gai-shu-he-linux-xu-ni-ji-yi/" title="计算机网络概述">https://xiaoyao891620610.github.io/post/wang-luo-gai-shu-he-linux-xu-ni-ji-yi/</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong class="language" data-lan="copyright">版权声明： </strong>
+      本博客所有文章除特别声明外，均采用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i> BY-NC-SA</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+  <div class="tags">
+    
+      <a href="https://xiaoyao891620610.github.io/tag/7kmLrwibZ/"># 计算机基础</a>
+    
+  </div>
+  <div class="nav">
+    <div class="nav-prev">
+      
+    </div>
+    <div class="nav-next">
+      
+        <a class="nav-pc-next" title="你尽力了吗? (来自中国著名网络安全专家小四scz)" href="https://xiaoyao891620610.github.io/post/ni-jin-li-liao-ma-lai-zi-zhong-guo-zhu-ming-wang-luo-an-quan-zhuan-jia-xiao-si-scz/">你尽力了吗? (来自中国著名网络安全专家小四scz)</a>
+        <a class="nav-mobile-next" title="你尽力了吗? (来自中国著名网络安全专家小四scz)" href="https://xiaoyao891620610.github.io/post/ni-jin-li-liao-ma-lai-zi-zhong-guo-zhu-ming-wang-luo-an-quan-zhuan-jia-xiao-si-scz/">下一篇</a>
+        <i class="fa fa-chevron-right"></i>
+      
+    </div>
+  </div>
+</div>
+            
+            
+  <script src="https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<div id="vcomments" style="padding: 10px 0px 0px 0px"></div>
+
+<style>
+  .v .veditor {
+    min-height: 10rem;
+    background-image: url('');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: right;
+    background-color: rgba(255, 255, 255, 0);
+    resize: none;
+  }
+
+  .v .vwrap {
+    border: 1px solid #000 !important;
+  }
+
+  .v .vbtn {
+    padding: .4rem 1.2rem !important;
+    border-color: #fff !important;
+    background-color: #49b1f5 !important;
+    color: #fff !important;
+    font-size: .7rem !important;
+  }
+
+  .v .vcards .vcard .vh .vmeta .vat {
+    padding: 0 .8rem !important;
+    border: 1px solid #00c4b6 !important;
+    border-radius: 5px !important;
+    color: #00c4b6 !important;
+  }
+</style>
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'IcTwmaXgxdUblGDW0N8EvN0M-gzGzoHsz',
+    appKey: 'PN7jl1as8GRm1MoIbGa8YLdC',
+    avatar: '',
+    placeholder: '',
+    pageSize: '',
+    lang: 'zh-cn',
+    enableQQ: 'true' === 'false',
+    visitor: 'true' === 'false',
+    highlight: 'true' === 'true',
+    avatarForce: 'true' === 'false',
+  });
+</script>
+
+          </div>
         </div>
       </div>
     </div>
@@ -483,6 +617,259 @@
   }
 
 </script>
+    <div class="light-box" id="light_box"></div>
+<script>
+  let imgs = document.querySelectorAll('.post-body img');
+  let lightBox = document.querySelector('#light_box');
+  lightBox.addEventListener('mousedown', (e) => {
+    e.preventDefault()
+  })
+  lightBox.addEventListener('mousewheel', (e) => {
+    e.preventDefault()
+  })
+  let width = window.innerWidth * 0.8;
+  lightBox.onclick = () => {
+    let img = lightBox.querySelector('img');
+    lightBox.style = '';
+    img && img.remove();
+  }
+  imgs.forEach(item => {
+    item.onclick = function (e) {
+      let lightImg = document.createElement('img');
+      lightImg.src = this.src;
+      lightBox.style = `height: 100%; opacity: 1; background-color: rgba(0, 0, 0, 0.5);cursor: zoom-out;`;
+      lightImg.style = `width: ${width}px;border-radius: 2px;`;
+      lightImg.onclick = function () {
+        lightBox.style = '';
+        this.remove();
+      }
+      lightBox.append(lightImg);
+    }
+  })
+</script>
+    <div class="reward-mask" style="display: none;">
+  <div class="reward-relative">
+    <span class="close" aria-hidden="true">x</span>
+    <div class="reward-body">
+      <h2>感谢您的支持，我会继续努力的!</h2>
+      <div class="reward-img-box">
+        <div style="position: relative; width: 140px; height: 140px;">
+          
+          
+          
+            <img id="wx" class="reward-img" src="\media\images\custom-wxImg.png" alt="赞赏码">
+          
+        </div>
+      </div>
+      <p class="reward-word">扫码打赏，你说多少就多少</p>
+      <p class="reward-tip">打开微信扫一扫，即可进行扫码打赏哦</p>
+    </div>
+    <div class="bottom">
+      
+      
+      <div id="wxBtn" class="pay-text">
+        微信支付
+      </div>
+      
+    </div>
+  </div>
+</div>
+<style>
+  .reward-mask {
+    position: fixed;
+    z-index: 99999;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #00000054;
+  }
+
+  .reward-relative {
+    position: relative;
+    width: 480px;
+    text-align: center;
+    margin: 0 auto;
+    border-radius: 5px;
+    background-color: #fff;
+    top: 50%;
+    margin-top: -205px;
+  }
+
+  .reward-relative .close {
+    position: absolute;
+    right: 10px;
+    font-weight: normal;
+    font-size: 16px;
+    color: #929292;
+  }
+
+  .reward-body {
+    padding: 40px 20px 20px;
+  }
+
+  .bottom {
+    display: flex;
+  }
+
+  .reward-btn {
+    text-align: center;
+  }
+
+  .reward-btn-text {
+    display: inline-block;
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    border-radius: 50%;
+    background-color: #ff9734;
+    color: #FFF;
+    margin-top: 20px;
+  }
+
+  .pay-text {
+    margin-top: 10px;
+    padding: 10px;
+    flex: 1;
+    transition: all .2s linear;
+  }
+
+  .pay-text:hover {
+    background-color: #a5a5a536;
+  }
+
+  .reward-body h2 {
+    padding-top: 10px;
+    text-align: center;
+    color: #a3a3a3;
+    font-size: 16px;
+    font-weight: normal;
+    margin: 0 0 20px;
+  }
+
+  .reward-body h2:after,
+  .reward-body h2:before {
+    font-family: Arial, Helvetica, sans-serif;
+    background: 0 0;
+    width: 0;
+    height: 0;
+    font-style: normal;
+    color: #eee;
+    font-size: 80px;
+    position: absolute;
+    top: 20px;
+  }
+
+  .reward-body h2:before {
+    content: '\201c';
+    left: 50px;
+  }
+
+  .reward-body h2:after {
+    content: '\201d';
+    right: 80px;
+  }
+
+  .reward-img-box {
+    display: inline-block;
+    padding: 10px;
+    border: 6px solid #ea5f00;
+    margin: 0 auto;
+    border-radius: 3px;
+    position: relative;
+  }
+
+  .reward-img {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 767px) {
+    .reward-relative {
+      height: 100%;
+      top: 0px;
+      margin-top: 0;
+      width: auto;
+    }
+
+    .reward-relative .bottom {
+      flex-direction: column;
+    }
+
+    .reward-relative .pay-text {
+      width: 80%;
+      margin: 5px auto;
+      border: 1px solid silver;
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .reward-body h2:after {
+      right: 40px;
+    }
+
+    .reward-body h2:after,
+    .reward-body h2:before {
+      font-size: 60px;
+    }
+
+    .reward-body h2:before {
+      left: 20px;
+    }
+  }
+</style>
+<script>
+  !function () {
+    var mask = document.querySelector('.reward-mask');
+    let close = document.querySelector('.reward-relative .close');
+    let rewardBtn = document.querySelector('.reward-btn');
+
+    let zfb = document.querySelector('#zfb'),
+      wx = document.querySelector('#wx'),
+      zfbBtn = document.querySelector('#zfbBtn'),
+      wxBtn = document.querySelector('#wxBtn');
+
+    if (zfbBtn && wxBtn) {
+      zfbBtn.addEventListener('click', () => {
+        window.Velocity(zfb, 'transition.slideLeftIn', {
+          duration: 400
+        });
+        window.Velocity(wx, 'transition.slideRightOut', {
+          display: 'none',
+          duration: 400
+        });
+      });
+
+      wxBtn.addEventListener('click', () => {
+        window.Velocity(wx, 'transition.slideRightIn', {
+          duration: 400
+        });
+        window.Velocity(zfb, 'transition.slideLeftOut', {
+          display: 'none',
+          duration: 400
+        });
+      });
+    }
+
+    rewardBtn.addEventListener('click', (e) => {
+      window.Velocity(mask, 'transition.slideDownIn', {
+        duration: 400
+      })
+    });
+
+    close.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.Velocity(mask, 'transition.slideUpOut', {
+        duration: 400
+      })
+    })
+  }()
+</script>
+
   </div>
 </body>
 
@@ -870,6 +1257,5 @@
 
   <div class="snow-container"></div>
   <script src="/media/js/bg/snow.js"></script>
-
 
 </html>
