@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xiaoyao891620610.github.io</id>
     <title>萧瑟</title>
-    <updated>2021-09-17T13:38:50.315Z</updated>
+    <updated>2021-09-17T13:45:42.342Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xiaoyao891620610.github.io"/>
     <link rel="self" href="https://xiaoyao891620610.github.io/atom.xml"/>
@@ -23,8 +23,8 @@
     @Override
     public void show() {
     	System.out.println(&quot;This is a Apple!&quot;);
-	}
-	public void circular(){
+    }
+    public void circular(){
     	System.out.println(&quot;circular......!&quot;);
     }
 }
@@ -32,16 +32,16 @@ public class Banana extends Fruit{
     @Override
     public void show() {
     	System.out.println(&quot;This is a Banana!&quot;);
-	}
+    }
 	public void curved(){
     	System.out.println(&quot;curved....!&quot;);
-   	}
+    }
 }
 
 public class MainFruitTest {
     public static void toDo(Fruit fruit){
     	fruit.show();
-	}
+    }
 
 	public static void main(String[] args) {
         //向上转型-父类的引用指向子类的对象
