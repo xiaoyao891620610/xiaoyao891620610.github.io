@@ -2,14 +2,83 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xiaoyao891620610.github.io</id>
     <title>萧瑟</title>
-    <updated>2020-11-22T12:25:03.541Z</updated>
+    <updated>2021-09-17T11:37:11.654Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xiaoyao891620610.github.io"/>
     <link rel="self" href="https://xiaoyao891620610.github.io/atom.xml"/>
     <subtitle>温故而知新</subtitle>
     <logo>https://xiaoyao891620610.github.io/images/avatar.png</logo>
     <icon>https://xiaoyao891620610.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2020, 萧瑟</rights>
+    <rights>All rights reserved 2021, 萧瑟</rights>
+    <entry>
+        <title type="html"><![CDATA[JAVA-向上转型和向下转型]]></title>
+        <id>https://xiaoyao891620610.github.io/post/java-xiang-shang-zhuan-xing-he-xiang-xia-zhuan-xing/</id>
+        <link href="https://xiaoyao891620610.github.io/post/java-xiang-shang-zhuan-xing-he-xiang-xia-zhuan-xing/">
+        </link>
+        <updated>2021-09-17T09:38:55.000Z</updated>
+        <content type="html"><![CDATA[<pre><code>🤡 向上转型: 父类的引用指向子类的对象
+</code></pre>
+<p>一. 向上转型代码示例分析</p>
+<pre><code>        class Apple extends Fruit{
+            @Override
+            public void show() {
+                System.out.println(&quot;This is a Apple!&quot;);
+            }
+            public void circular(){
+                System.out.println(&quot;circular......!&quot;);
+            }
+        }
+        public class Banana extends Fruit{
+            @Override
+            public void show() {
+                System.out.println(&quot;This is a Banana!&quot;);
+            }
+            public void curved(){
+                System.out.println(&quot;curved....!&quot;);
+            }
+        }
+
+        public class MainFruitTest {
+            public static void toDo(Fruit fruit){
+                fruit.show();
+            }
+
+            public static void main(String[] args) {
+            	//向上转型-父类的引用指向子类的对象
+                Fruit apple = new Apple();
+                //向下转型-把子类对象的父类引用赋给子类引用，这里是强制转换
+                // Apple appleDown = (Apple)apple;
+        		//appleDown.circular(); // circular......!
+                apple.circular(); //编译报错可以运行。运行报错-&gt;java: 找不到符号 符号:   方法 circular()  位置: 类 org.hadoop.Fruit.  注：apple虽然指向的是子类对象，但丢失了circular()方法
+                toDo(apple); // This is a Apple!
+                
+                Fruit banana = new Banana();
+                toDo(banana); // This is a Banana!
+            }
+        }
+</code></pre>
+<p>​		Fruit apple = new Apple()，实例化的Apple对象赋值给了父类Fruit对象，这便是典型的向上转型。当向上转型之后，父类引用变量便可以访问子类中继承了(或者说属于)父类的属性和方法，但是不能访问子类独有的属性和方法（java: 找不到符号 符号:   方法 circular()  位置: 类 org.hadoop.Fruit）。</p>
+<p>二. 向上转型作用</p>
+<pre><code>	public static void toDo(Fruit fruit){
+            fruit.show();
+        }
+</code></pre>
+<p>​		以父类为参数，但是在调用的时候传的是子类的对象，方法toDo()以子类为对象，无论是Apple，还是Banana，都会向上转型成Fruit对象，这样在调用show()方法时，还是子类在调用，就不需要再重载多个toDo()方法了，这样会节约代码量，也正提现了JAVA的抽象编程思想。</p>
+<pre><code>🤡向下转型：把子类对象的父类引用赋给子类引用
+</code></pre>
+<p>一.   向下转型的注意点</p>
+<p>​		例 1 ：Fruit apple = new Apple();</p>
+<p>​					Apple appleDown = (Apple)apple;</p>
+<p>​					正确的向下转型，因为appleDown 指向的是子类对象。</p>
+<p>​		例 2 ：Fruit fruit = new Fruit();</p>
+<p>​					Apple apple = (Apple)fruit;</p>
+<pre><code>		运行报错：org.hadoop.Fruit cannot be cast to org.hadoop.Apple
+at org.hadoop.MainFruitTest.main
+</code></pre>
+<p>二.  向下转型的作用</p>
+<p>​	向上转型时，作为子类对象的父类引用无法调用除与父类共有的方法和属性。那么此时就可以通过向下转型，把父类作为子类的引用强制转换赋给子类的对象，这样就可以调用子类的全部方法。当然要结合实际出发去转换。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[计算机网络概述]]></title>
         <id>https://xiaoyao891620610.github.io/post/wang-luo-gai-shu-he-linux-xu-ni-ji-yi/</id>
