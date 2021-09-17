@@ -9,7 +9,7 @@
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
 <title>计算机网络概述 | 萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1631878624828">
+<link rel="shortcut icon" href="/favicon.ico?v=1631885896657">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -897,49 +897,49 @@
           &lt;pre&gt;&lt;code&gt;🤡 向上转型: 父类的引用指向子类的对象
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;一. 向上转型代码示例分析&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;        class Apple extends Fruit{
-            @Override
-            public void show() {
-                System.out.println(&amp;quot;This is a Apple!&amp;quot;);
-            }
-            public void circular(){
-                System.out.println(&amp;quot;circular......!&amp;quot;);
-            }
-        }
-        public class Banana extends Fruit{
-            @Override
-            public void show() {
-                System.out.println(&amp;quot;This is a Banana!&amp;quot;);
-            }
-            public void curved(){
-                System.out.println(&amp;quot;curved....!&amp;quot;);
-            }
-        }
+&lt;pre&gt;&lt;code&gt;class Apple extends Fruit{
+    @Override
+    public void show() {
+    	System.out.println(&amp;quot;This is a Apple!&amp;quot;);
+	}
+	public void circular(){
+    	System.out.println(&amp;quot;circular......!&amp;quot;);
+    }
+}
+public class Banana extends Fruit{
+    @Override
+    public void show() {
+    	System.out.println(&amp;quot;This is a Banana!&amp;quot;);
+	}
+	public void curved(){
+    	System.out.println(&amp;quot;curved....!&amp;quot;);
+   	}
+}
 
-        public class MainFruitTest {
-            public static void toDo(Fruit fruit){
-                fruit.show();
-            }
+public class MainFruitTest {
+    public static void toDo(Fruit fruit){
+    	fruit.show();
+	}
 
-            public static void main(String[] args) {
-            	//向上转型-父类的引用指向子类的对象
-                Fruit apple = new Apple();
-                //向下转型-把子类对象的父类引用赋给子类引用，这里是强制转换
-                // Apple appleDown = (Apple)apple;
-        		//appleDown.circular(); // circular......!
-                apple.circular(); //编译报错可以运行。运行报错-&amp;gt;java: 找不到符号 符号:   方法 circular()  位置: 类 org.hadoop.Fruit.  注：apple虽然指向的是子类对象，但丢失了circular()方法
-                toDo(apple); // This is a Apple!
-                
-                Fruit banana = new Banana();
-                toDo(banana); // This is a Banana!
-            }
-        }
+	public static void main(String[] args) {
+        //向上转型-父类的引用指向子类的对象
+        Fruit apple = new Apple();
+        //向下转型-把子类对象的父类引用赋给子类引用，这里是强制转换
+        // Apple appleDown = (Apple)apple;
+        //appleDown.circular(); // circular......!
+        apple.circular(); //编译报错可以运行。运行报错-&amp;gt;java: 找不到符号 符号:   方法 circular()  位置: 类 org.hadoop.Fruit.  注：apple虽然指向的是子类对象，但丢失了circular()方法
+        toDo(apple); // This is a Apple!
+
+        Fruit banana = new Banana();
+        toDo(banana); // This is a Banana!
+    }
+}
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;​		Fruit apple = new Apple()，实例化的Apple对象赋值给了父类Fruit对象，这便是典型的向上转型。当向上转型之后，父类引用变量便可以访问子类中继承了(或者说属于)父类的属性和方法，但是不能访问子类独有的属性和方法（java: 找不到符号 符号:   方法 circular()  位置: 类 org.hadoop.Fruit）。&lt;/p&gt;
 &lt;p&gt;二. 向上转型作用&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;	public static void toDo(Fruit fruit){
-            fruit.show();
-        }
+&lt;pre&gt;&lt;code&gt;public static void toDo(Fruit fruit){
+	fruit.show();
+}
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;​		以父类为参数，但是在调用的时候传的是子类的对象，方法toDo()以子类为对象，无论是Apple，还是Banana，都会向上转型成Fruit对象，这样在调用show()方法时，还是子类在调用，就不需要再重载多个toDo()方法了，这样会节约代码量，也正提现了JAVA的抽象编程思想。&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;🤡向下转型：把子类对象的父类引用赋给子类引用
@@ -950,7 +950,7 @@
 &lt;p&gt;​					正确的向下转型，因为appleDown 指向的是子类对象。&lt;/p&gt;
 &lt;p&gt;​		例 2 ：Fruit fruit = new Fruit();&lt;/p&gt;
 &lt;p&gt;​					Apple apple = (Apple)fruit;&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;		运行报错：org.hadoop.Fruit cannot be cast to org.hadoop.Apple
+&lt;pre&gt;&lt;code&gt;运行报错：org.hadoop.Fruit cannot be cast to org.hadoop.Apple
 at org.hadoop.MainFruitTest.main
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;二.  向下转型的作用&lt;/p&gt;
