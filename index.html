@@ -9,7 +9,7 @@
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
 <title>萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1632276019610">
+<link rel="shortcut icon" href="/favicon.ico?v=1632383285888">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -193,7 +193,7 @@
     <div class="sidebar-item-box">
       <a href="/archives/">
         
-        <span class="site-item-stat-count">3</span>
+        <span class="site-item-stat-count">4</span>
         <span class="site-item-stat-name language" data-lan="article">文章</span>
       </a>
     </div>
@@ -296,6 +296,76 @@
         
         <div class="post-button text-center">
           <a class="btn language" data-lan="read-more" href="https://xiaoyao891620610.github.io/post/ni-jin-li-liao-ma-lai-zi-zhong-guo-zhu-ming-wang-luo-an-quan-zhuan-jia-xiao-si-scz/" rel="contents">
+            阅读全文 »
+          </a>
+        </div>
+        
+      </div>
+      
+    </div>
+  </article>
+
+  <article class="post-list-box  post box-shadow-wrapper">
+    <div class="article-wrapper bg-color">
+      <section class="post-header">
+  <h1 class="post-title">
+    <a class="post-title-link" href="https://xiaoyao891620610.github.io/post/hdfs/">
+      HDFS
+    </a>
+  </h1>
+  <div class="post-meta">
+    
+    <span class="meta-item pc-show">
+      <i class="fa fa-calendar-o"></i>
+      <span class="language" data-lan="publish">发布于</span>
+      <span class="publish-time" data-t="2021-09-23 10:07:47">2021-09-23</span>
+      <span class="post-meta-divider pc-show">|</span>
+    </span>
+    
+    <span class="meta-item">
+      <i class="fa fa-clock-o"></i>
+      <span>2<span class="language" data-lan="minute">分钟</span></span>
+    </span>
+    <span class="meta-item">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-file-word-o"></i>
+      <span>394<span class="pc-show language" data-lan="words">字数</span></span>
+    </span>
+    
+  </div>
+</section>
+      <div class="post-body">
+        
+        
+          
+            <!-- 没有手动摘要切开启了自动摘要,则根据配置筛除摘要内容 -->
+            
+            
+              
+              
+              
+            
+              
+              
+              
+            
+              
+              
+              
+            
+            
+              <p><h3 id="一hdfs的概念">一.HDFS的概念</h3>
+<p>​	HDFS (Hadoop Distributed File System),是一个分布式文件系统，运用了分而治之的设计思想，部署在低廉的硬件上，非常适合超大数据集的处理应用。</p>
+<h3 id="二hdfs的架构">二.HDFS的架构</h3>
+
+                
+              <p>
+            
+          
+        
+        
+        <div class="post-button text-center">
+          <a class="btn language" data-lan="read-more" href="https://xiaoyao891620610.github.io/post/hdfs/" rel="contents">
             阅读全文 »
           </a>
         </div>
@@ -719,6 +789,26 @@
       <hr>
     </div>
     <div class="result" id="result">
+      
+      <div class="item">
+        <a class="result-title" style="opacity: 0;" href="https://xiaoyao891620610.github.io/post/hdfs/"" data-c="
+          &lt;h3 id=&#34;一hdfs的概念&#34;&gt;一.HDFS的概念&lt;/h3&gt;
+&lt;p&gt;​	HDFS (Hadoop Distributed File System),是一个分布式文件系统，运用了分而治之的设计思想，部署在低廉的硬件上，非常适合超大数据集的处理应用。&lt;/p&gt;
+&lt;h3 id=&#34;二hdfs的架构&#34;&gt;二.HDFS的架构&lt;/h3&gt;
+&lt;p&gt;​	HDFS集群中包含了NameNode, SecondaryNameNode,DataNode这几个角色。&lt;/p&gt;
+&lt;p&gt;​		NameNode(NN)： NameNode是HDFS的主节点，主要用于维护hdfs文件系统的目录树，维护的信息是保存在本地磁盘上：命名空间镜像文件(fsimage)和编辑日志文件(edits)。并且记录这每一个块(block)所在的数据节点(DataNode)的位置(block的id，block所在的datanode服务器)。&lt;/p&gt;
+&lt;p&gt;​		SecondaryNameNode(SNN)：定期将编辑日志文件(edits)和命名空间镜像文件(fsimage)合并，防止编辑日志文件过大，同时能元数据和namenode元数据一致。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;​		NN和SNN的工作机制&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;​		&lt;img src=&#34;https://xiaoyao891620610.github.io/post-images/1632383275847.jpg&#34; alt=&#34;&#34; loading=&#34;lazy&#34;&gt;&lt;/p&gt;
+&lt;p&gt;​		SNN会定期询问NN是否需要checkpoint然后直接带回NN是否检查的结果，当checkpoint定时时间到了或者edits中的数据满了，SNN会请求执行checkpoint。&lt;/p&gt;
+&lt;p&gt;​		SNN用来完成edits和fsimage的合并，会请求namenode停止使用edits，暂时将写入操作放入一个新的文件edits.new, SecondaryNameNode通过http get请求获取edits和fsimage，同时加载到内存当中逐一进行合并操作，生成新的fsimage.ckpt。然后将fsimage.ckpt通过http post发送给namenode。namenode将fsimage.ckpt文件替换原有的fsimage,再将edits.new替换成edits,同时会更新fstime。&lt;/p&gt;
+&lt;p&gt;合并触发条件：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;fs.checkpoint.period: 默认是一个小时（3600s)
+fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB) &lt;/code&gt;&lt;/pre&gt;
+">HDFS</a>
+      </div>
       
       <div class="item">
         <a class="result-title" style="opacity: 0;" href="https://xiaoyao891620610.github.io/post/java-xiang-shang-zhuan-xing-he-xiang-xia-zhuan-xing/"" data-c="
