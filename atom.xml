@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xiaoyao891620610.github.io</id>
     <title>萧瑟</title>
-    <updated>2021-09-23T08:53:34.412Z</updated>
+    <updated>2021-09-23T10:54:20.726Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xiaoyao891620610.github.io"/>
     <link rel="self" href="https://xiaoyao891620610.github.io/atom.xml"/>
@@ -17,7 +17,9 @@
         </link>
         <updated>2021-09-23T02:07:47.000Z</updated>
         <content type="html"><![CDATA[<h3 id="一hdfs的概念">一.HDFS的概念</h3>
-<p>​	HDFS (Hadoop Distributed File System),是一个分布式文件系统，运用了分而治之的设计思想，部署在低廉的硬件上，非常适合超大数据集的处理应用。</p>
+<p>​	HDFS (Hadoop Distributed File System),是一个分布式文件系统，运用了分而治之的设计思想，部署在低廉的硬件上，将大文件，大批量文件，分布式存放在大量服务器上，并对海量数据进行运算分析。</p>
+<pre><code>大数据系统中的作用：为各类分布式的运算框架 (mapreduce,spark,tez,.......)提供数据存储服务
+</code></pre>
 <h3 id="二hdfs的架构">二.HDFS的架构</h3>
 <p>​	HDFS集群中包含了NameNode, SecondaryNameNode,DataNode这几个角色。</p>
 <p>​		NameNode(NN)： NameNode是HDFS的主节点，主要用于维护hdfs文件系统的目录树，维护的信息是保存在本地磁盘上：命名空间镜像文件(fsimage)和编辑日志文件(edits)。并且记录这每一个块(block)所在的数据节点(DataNode)的位置(block的id，block所在的datanode服务器)。</p>
@@ -30,7 +32,24 @@
 <p>​		SNN用来完成edits和fsimage的合并，会请求namenode停止使用edits，暂时将写入操作放入一个新的文件edits.new, SecondaryNameNode通过http get请求获取edits和fsimage，同时加载到内存当中逐一进行合并操作，生成新的fsimage.ckpt。然后将fsimage.ckpt通过http post发送给namenode。namenode将fsimage.ckpt文件替换原有的fsimage,再将edits.new替换成edits,同时会更新fstime。</p>
 <p>合并触发条件：</p>
 <pre><code>fs.checkpoint.period: 默认是一个小时（3600s)
-fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB) </code></pre>
+fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB) 
+</code></pre>
+<p>​		DataNode(DN)：是hdfs文件系统的工作节点，以数据块的形式存储hdfs文件，并且定期向NameNode发送心跳信息，数据块信息，缓存数据块信息。</p>
+<blockquote>
+<p>​		SNN和DN的工作机制</p>
+</blockquote>
+<p>​		 <img src="https://img2018.cnblogs.com/blog/1758148/202003/1758148-20200301100707497-993203721.png" alt="img" loading="lazy"></p>
+<ul>
+<li>
+<p>一个数据块在datanode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据包括数据块的长度，块数据的校验和，以及时间戳。</p>
+</li>
+<li>
+<p>DataNode启动后向namenode注册，通过后，周期性（1小时）的向namenode上报所有的块信息。</p>
+</li>
+<li>
+<p>心跳是每3秒一次，心跳返回结果带有namenode给该datanode的命令如复制块数据到另一台机器，或删除某个数据块。如果超过10分钟没有收到某个datanode的心跳，则认为该节点不可用。</p>
+</li>
+</ul>
 ]]></content>
     </entry>
     <entry>

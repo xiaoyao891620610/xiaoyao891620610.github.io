@@ -9,7 +9,7 @@
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
 <title>萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1632387073397">
+<link rel="shortcut icon" href="/favicon.ico?v=1632394443477">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -496,7 +496,9 @@
       <div class="item">
         <a class="result-title" style="opacity: 0;" href="https://xiaoyao891620610.github.io/post/hdfs/"" data-c="
           &lt;h3 id=&#34;一hdfs的概念&#34;&gt;一.HDFS的概念&lt;/h3&gt;
-&lt;p&gt;​	HDFS (Hadoop Distributed File System),是一个分布式文件系统，运用了分而治之的设计思想，部署在低廉的硬件上，非常适合超大数据集的处理应用。&lt;/p&gt;
+&lt;p&gt;​	HDFS (Hadoop Distributed File System),是一个分布式文件系统，运用了分而治之的设计思想，部署在低廉的硬件上，将大文件，大批量文件，分布式存放在大量服务器上，并对海量数据进行运算分析。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;大数据系统中的作用：为各类分布式的运算框架 (mapreduce,spark,tez,.......)提供数据存储服务
+&lt;/code&gt;&lt;/pre&gt;
 &lt;h3 id=&#34;二hdfs的架构&#34;&gt;二.HDFS的架构&lt;/h3&gt;
 &lt;p&gt;​	HDFS集群中包含了NameNode, SecondaryNameNode,DataNode这几个角色。&lt;/p&gt;
 &lt;p&gt;​		NameNode(NN)： NameNode是HDFS的主节点，主要用于维护hdfs文件系统的目录树，维护的信息是保存在本地磁盘上：命名空间镜像文件(fsimage)和编辑日志文件(edits)。并且记录这每一个块(block)所在的数据节点(DataNode)的位置(block的id，block所在的datanode服务器)。&lt;/p&gt;
@@ -509,7 +511,24 @@
 &lt;p&gt;​		SNN用来完成edits和fsimage的合并，会请求namenode停止使用edits，暂时将写入操作放入一个新的文件edits.new, SecondaryNameNode通过http get请求获取edits和fsimage，同时加载到内存当中逐一进行合并操作，生成新的fsimage.ckpt。然后将fsimage.ckpt通过http post发送给namenode。namenode将fsimage.ckpt文件替换原有的fsimage,再将edits.new替换成edits,同时会更新fstime。&lt;/p&gt;
 &lt;p&gt;合并触发条件：&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;fs.checkpoint.period: 默认是一个小时（3600s)
-fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB) &lt;/code&gt;&lt;/pre&gt;
+fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB) 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;​		DataNode(DN)：是hdfs文件系统的工作节点，以数据块的形式存储hdfs文件，并且定期向NameNode发送心跳信息，数据块信息，缓存数据块信息。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;​		SNN和DN的工作机制&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;​		 &lt;img src=&#34;https://img2018.cnblogs.com/blog/1758148/202003/1758148-20200301100707497-993203721.png&#34; alt=&#34;img&#34; loading=&#34;lazy&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;一个数据块在datanode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据包括数据块的长度，块数据的校验和，以及时间戳。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;DataNode启动后向namenode注册，通过后，周期性（1小时）的向namenode上报所有的块信息。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;心跳是每3秒一次，心跳返回结果带有namenode给该datanode的命令如复制块数据到另一台机器，或删除某个数据块。如果超过10分钟没有收到某个datanode的心跳，则认为该节点不可用。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
 ">HDFS</a>
       </div>
       
