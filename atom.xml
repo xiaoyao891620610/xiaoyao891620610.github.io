@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xiaoyao891620610.github.io</id>
     <title>萧瑟</title>
-    <updated>2021-09-24T01:10:52.344Z</updated>
+    <updated>2021-09-24T01:12:37.179Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xiaoyao891620610.github.io"/>
     <link rel="self" href="https://xiaoyao891620610.github.io/atom.xml"/>
@@ -38,7 +38,7 @@ fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB)
 <blockquote>
 <p>​		SNN和DN的工作机制</p>
 </blockquote>
-<p>​		 <img src="https://img2018.cnblogs.com/blog/1758148/202003/1758148-20200301100707497-993203721.png" alt="img" loading="lazy"></p>
+<p>​		<img src="https://xiaoyao891620610.github.io/post-images/1632445946052.jpg" alt="" loading="lazy"></p>
 <ul>
 <li>
 <p>一个数据块在datanode上以文件形式存储在磁盘上，包括两个文件，一个是数据本身，一个是元数据包括数据块的长度，块数据的校验和，以及时间戳。</p>
