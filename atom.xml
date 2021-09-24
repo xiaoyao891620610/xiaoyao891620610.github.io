@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xiaoyao891620610.github.io</id>
     <title>萧瑟</title>
-    <updated>2021-09-24T02:05:33.529Z</updated>
+    <updated>2021-09-24T02:49:59.481Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xiaoyao891620610.github.io"/>
     <link rel="self" href="https://xiaoyao891620610.github.io/atom.xml"/>
@@ -23,7 +23,7 @@
 <h3 id="二hdfs的架构">二.HDFS的架构</h3>
 <p>​	HDFS集群中包含了NameNode, SecondaryNameNode,DataNode这几个角色。</p>
 <p>​		NameNode(NN)： NameNode是HDFS的主节点，主要用于维护hdfs文件系统的目录树，维护的信息是保存在本地磁盘上：命名空间镜像文件(fsimage)和编辑日志文件(edits)。并且记录这每一个块(block)所在的数据节点(DataNode)的位置(block的id，block所在的datanode服务器)。</p>
-<p>​		SecondaryNameNode(SNN)：定期将编辑日志文件(edits)和命名空间镜像文件(fsimage)合并，防止编辑日志文件过大，同时能元数据和namenode元数据一致。</p>
+<h3 id="secondarynamenodesnn定期将编辑日志文件edits和命名空间镜像文件fsimage合并防止编辑日志文件过大同时能元数据和namenode元数据一致">SecondaryNameNode(SNN)：定期将编辑日志文件(edits)和命名空间镜像文件(fsimage)合并，防止编辑日志文件过大，同时能元数据和namenode元数据一致。</h3>
 <blockquote>
 <p>​		NN和SNN的工作机制</p>
 </blockquote>

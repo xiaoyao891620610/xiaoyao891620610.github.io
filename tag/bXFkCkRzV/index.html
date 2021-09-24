@@ -9,7 +9,7 @@
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
 <title>萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1632449120135">
+<link rel="shortcut icon" href="/favicon.ico?v=1632451795332">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -502,7 +502,7 @@
 &lt;h3 id=&#34;二hdfs的架构&#34;&gt;二.HDFS的架构&lt;/h3&gt;
 &lt;p&gt;​	HDFS集群中包含了NameNode, SecondaryNameNode,DataNode这几个角色。&lt;/p&gt;
 &lt;p&gt;​		NameNode(NN)： NameNode是HDFS的主节点，主要用于维护hdfs文件系统的目录树，维护的信息是保存在本地磁盘上：命名空间镜像文件(fsimage)和编辑日志文件(edits)。并且记录这每一个块(block)所在的数据节点(DataNode)的位置(block的id，block所在的datanode服务器)。&lt;/p&gt;
-&lt;p&gt;​		SecondaryNameNode(SNN)：定期将编辑日志文件(edits)和命名空间镜像文件(fsimage)合并，防止编辑日志文件过大，同时能元数据和namenode元数据一致。&lt;/p&gt;
+&lt;h3 id=&#34;secondarynamenodesnn定期将编辑日志文件edits和命名空间镜像文件fsimage合并防止编辑日志文件过大同时能元数据和namenode元数据一致&#34;&gt;SecondaryNameNode(SNN)：定期将编辑日志文件(edits)和命名空间镜像文件(fsimage)合并，防止编辑日志文件过大，同时能元数据和namenode元数据一致。&lt;/h3&gt;
 &lt;blockquote&gt;
 &lt;p&gt;​		NN和SNN的工作机制&lt;/p&gt;
 &lt;/blockquote&gt;
