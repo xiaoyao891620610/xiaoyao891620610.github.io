@@ -9,7 +9,7 @@
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
 <title>萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1632619956922">
+<link rel="shortcut icon" href="/favicon.ico?v=1632713357319">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -495,14 +495,14 @@
       
       <div class="item">
         <a class="result-title" style="opacity: 0;" href="https://xiaoyao891620610.github.io/post/hdfs/"" data-c="
-          &lt;h3 id=&#34;一hdfs的概念&#34;&gt;一.HDFS的概念&lt;/h3&gt;
+          &lt;h3 id=&#34;1hdfs的概念&#34;&gt;1.HDFS的概念&lt;/h3&gt;
 &lt;p&gt;​	HDFS (Hadoop Distributed File System),是一个分布式文件系统，运用了分而治之的设计思想，部署在低廉的硬件上，将大文件，大批量文件，分布式存放在大量服务器上，并对海量数据进行运算分析。&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;大数据系统中的作用：为各类分布式的运算框架 (mapreduce,spark,tez,.......)提供数据存储服务
 &lt;/code&gt;&lt;/pre&gt;
-&lt;h3 id=&#34;二hdfs的架构&#34;&gt;二.HDFS的架构&lt;/h3&gt;
+&lt;h3 id=&#34;2hdfs的架构&#34;&gt;2.HDFS的架构&lt;/h3&gt;
 &lt;p&gt;​	HDFS集群中包含了NameNode, SecondaryNameNode,DataNode这几个角色。&lt;/p&gt;
 &lt;p&gt;​		NameNode(NN)： NameNode是HDFS的主节点，主要用于维护hdfs文件系统的目录树，维护的信息是保存在本地磁盘上：命名空间镜像文件(fsimage)和编辑日志文件(edits)。并且记录这每一个块(block)所在的数据节点(DataNode)的位置(block的id，block所在的datanode服务器)。&lt;/p&gt;
-&lt;h3 id=&#34;secondarynamenodesnn定期将编辑日志文件edits和命名空间镜像文件fsimage合并防止编辑日志文件过大同时能元数据和namenode元数据一致&#34;&gt;SecondaryNameNode(SNN)：定期将编辑日志文件(edits)和命名空间镜像文件(fsimage)合并，防止编辑日志文件过大，同时能元数据和namenode元数据一致。&lt;/h3&gt;
+&lt;p&gt;​		SecondaryNameNode(SNN)：定期将编辑日志文件(edits)和命名空间镜像文件(fsimage)合并，防止编辑日志文件过大，同时能元数据和namenode元数据一致。&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;​		NN和SNN的工作机制&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -527,6 +527,23 @@ fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB)
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;心跳是每3秒一次，心跳返回结果带有namenode给该datanode的命令如复制块数据到另一台机器，或删除某个数据块。如果超过10分钟没有收到某个datanode的心跳，则认为该节点不可用。&lt;/p&gt;
+&lt;h2 id=&#34;3hdfs的核心概念&#34;&gt;3.HDFS的核心概念&lt;/h2&gt;
+&lt;h3 id=&#34;31-blocks&#34;&gt;3.1 blocks&lt;/h3&gt;
+&lt;p&gt;​	磁盘中有块的概念，意味着可以读写的最小数据量。文件系统的大小一般是磁盘的大小的整数倍来运作这个磁盘，一般为几千字节，而磁盘块一般是512Byte。 Hadoop提供的df、fsck这类运维工具都是在文件系统的Block级别上进行操作。&lt;/p&gt;
+&lt;p&gt;​	HDFS的block块比一般单机文件系统大的多，Hadoop1.x 默认block分块是64M，Hadoop2.x默认是128M。经过测试在上传了2M的文件并非占用了整个block块，而是占用了实际大小，也就是在hdfs当中只用了2M的空间，而不是128M。&lt;/p&gt;
+&lt;h5 id=&#34;block块大小的设计原则&#34;&gt;block块大小的设计原则&lt;/h5&gt;
+&lt;h6 id=&#34;1减少磁盘的寻址时间控制寻址和传输文件所用的时间比例&#34;&gt;1.减少磁盘的寻址时间：控制寻址和传输文件所用的时间比例。&lt;/h6&gt;
+&lt;p&gt;​			一般hdfs的寻址时间为10ms，经过反复测试，当寻址时间为传输时间的**1%**时为最佳传输状态。那么一般的机械硬盘文件读写的速度一般为100M/s，那么200M/s或者 普通固态为500MB/s,pcie固态的速度可以达到2000MB/s,因此块的大小可以分别设为128MB,256MB,512MB,2048MB 。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;  	最佳传输时间为：10ms/0.01=1000ms=1s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;​			 计算出最佳block大小：100MB/s x 1s = 100MB&lt;/p&gt;
+&lt;p&gt;​			所以设定block大小一般为128MB。&lt;/p&gt;
+&lt;p&gt;​			经过测试我们现阶段可以说，&lt;strong&gt;block的大小主要取决于磁盘传输速率&lt;/strong&gt;。&lt;/p&gt;
+&lt;h6 id=&#34;2减少namenode内存消耗因为namenode主节点主要维护的是hdfs所有文件的目录树文件信息-block块太小那么需要需要维护的数据块信息会更多而namenode节点的内存是极其有限的-block块太小则会增加寻址时间导致程序一直在寻找block的起始位置&#34;&gt;2.减少namenode内存消耗：因为namenode主节点主要维护的是hdfs所有文件的目录树，文件信息。block块太小，那么需要需要维护的数据块信息会更多，而namenode节点的内存是极其有限的。block块太小，则会增加寻址时间，导致程序一直在寻找block的起始位置。&lt;/h6&gt;
+&lt;h6 id=&#34;3map崩溃当开启map任务时map-task的数据来源是block当然在mapreduce的概念中是读取split切片split和block默认是一对一-当block过大会导致在启动时数据加载时间越长恢复时间越长&#34;&gt;3.map崩溃：当开启map任务时，map task的数据来源是block，当然在mapreduce的概念中是读取split(切片)，split和block默认是一对一。当block过大会导致在启动时数据加载时间越长，恢复时间越长。&lt;/h6&gt;
+&lt;h6 id=&#34;4监管时间问题主节点监管其他节点的情况每个节点会周期性的把完成的工作和状态的更新报告回来-若某个节点保存沉默超过预设的时间间隔主节点宣告该节点状态为死亡并把分配给这个节点的数据发到别的节点-预设的时间间隔是根据数据块-size角度估算的若size设置不合理容易误判节点死亡&#34;&gt;4.监管时间问题：主节点监管其他节点的情况，每个节点会周期性的把完成的工作和状态的更新报告回来。若某个节点保存沉默超过预设的时间间隔，主节点“宣告”该节点状态为死亡，并把分配给这个节点的数据发到别的节点。预设的时间间隔是根据数据块 size角度估算的，若size设置不合理，容易误判节点死亡。&lt;/h6&gt;
+&lt;pre&gt;&lt;code&gt;  5.网络传输问题: 在数据读写计算的时候,需要进行网络传输.如果block过大会导致网络传输时间增长,程序卡顿/超时/无响应. 任务执行的过程中拉取其他节点的block或者失败重试的成本会过高.如果block过小,则会频繁的进行文件传输,对严重占用网络/CPU资源.
+&lt;/code&gt;&lt;/pre&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 ">HDFS</a>
