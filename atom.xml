@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xiaoyao891620610.github.io</id>
     <title>萧瑟</title>
-    <updated>2021-09-27T03:37:24.415Z</updated>
+    <updated>2021-09-27T03:39:39.554Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xiaoyao891620610.github.io"/>
     <link rel="self" href="https://xiaoyao891620610.github.io/atom.xml"/>
@@ -54,10 +54,10 @@ fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB)
 <p>​	HDFS的block块比一般单机文件系统大的多，Hadoop1.x 默认block分块是64M，Hadoop2.x默认是128M。经过测试在上传了2M的文件并非占用了整个block块，而是占用了实际大小，也就是在hdfs当中只用了2M的空间，而不是128M。</p>
 <h5 id="block块大小的设计原则">block块大小的设计原则</h5>
 <h6 id="1减少磁盘的寻址时间控制寻址和传输文件所用的时间比例">1.减少磁盘的寻址时间：控制寻址和传输文件所用的时间比例。</h6>
-<p>​		一般hdfs的寻址时间为10ms，经过反复测试，当寻址时间为传输时间的**1%**时为最佳传输状态。那么一般的机械硬盘文件读写的速度一般为100M/s，那么200M/s或者 普通固态为500MB/s,pcie固态的速度可以达到2000MB/s,因此块的大小可以分别设为128MB,256MB,512MB,2048MB 。</p>
-<pre><code>      最佳传输时间为：10ms/0.01=1000ms=1s
+<p>​		一般hdfs的寻址时间为10ms，经过反复测试，当寻址时间为传输时间的**1%**时为最佳传输状态。那么一般的机械硬盘文件读写的速度一般为100M/s，200M/s或者 普通固态为500MB/s,pcie固态的速度可以达到2000MB/s,因此块的大小可以分别设为128MB,256MB,512MB,2048MB 。</p>
+<pre><code>     最佳传输时间为：10ms/0.01=1000ms=1s
 </code></pre>
-<p>​			 计算出最佳block大小：100MB/s x 1s = 100MB<br>
+<p>​			计算出最佳block大小：100MB/s x 1s = 100MB<br>
 ​			所以设定block大小一般为128MB。<br>
 ​			经过测试我们现阶段可以说，<strong>block的大小主要取决于磁盘传输速率</strong>。</p>
 <h6 id="2减少namenode内存消耗因为namenode主节点主要维护的是hdfs所有文件的目录树文件信息-block块太小那么需要需要维护的数据块信息会更多而namenode节点的内存是极其有限的-block块太小则会增加寻址时间导致程序一直在寻找block的起始位置">2.减少namenode内存消耗：因为namenode主节点主要维护的是hdfs所有文件的目录树，文件信息。block块太小，那么需要需要维护的数据块信息会更多，而namenode节点的内存是极其有限的。block块太小，则会增加寻址时间，导致程序一直在寻找block的起始位置。</h6>
