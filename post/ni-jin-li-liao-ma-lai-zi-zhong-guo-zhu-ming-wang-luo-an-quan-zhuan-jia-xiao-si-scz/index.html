@@ -9,7 +9,7 @@
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
 <title>你尽力了吗? (来自中国著名网络安全专家小四scz) | 萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1632713706391">
+<link rel="shortcut icon" href="/favicon.ico?v=1632713839448">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -902,10 +902,11 @@ fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB)
 &lt;h5 id=&#34;block块大小的设计原则&#34;&gt;block块大小的设计原则&lt;/h5&gt;
 &lt;h6 id=&#34;1减少磁盘的寻址时间控制寻址和传输文件所用的时间比例&#34;&gt;1.减少磁盘的寻址时间：控制寻址和传输文件所用的时间比例。&lt;/h6&gt;
 &lt;p&gt;​		一般hdfs的寻址时间为10ms，经过反复测试，当寻址时间为传输时间的**1%**时为最佳传输状态。那么一般的机械硬盘文件读写的速度一般为100M/s，那么200M/s或者 普通固态为500MB/s,pcie固态的速度可以达到2000MB/s,因此块的大小可以分别设为128MB,256MB,512MB,2048MB 。&lt;/p&gt;
-&lt;p&gt;最佳传输时间为：10ms/0.01=1000ms=1s&lt;/p&gt;
-&lt;p&gt;​			 计算出最佳block大小：100MB/s x 1s = 100MB&lt;/p&gt;
-&lt;p&gt;​			所以设定block大小一般为128MB。&lt;/p&gt;
-&lt;p&gt;​			经过测试我们现阶段可以说，&lt;strong&gt;block的大小主要取决于磁盘传输速率&lt;/strong&gt;。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;      最佳传输时间为：10ms/0.01=1000ms=1s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;​			 计算出最佳block大小：100MB/s x 1s = 100MB&lt;br&gt;
+​			所以设定block大小一般为128MB。&lt;br&gt;
+​			经过测试我们现阶段可以说，&lt;strong&gt;block的大小主要取决于磁盘传输速率&lt;/strong&gt;。&lt;/p&gt;
 &lt;h6 id=&#34;2减少namenode内存消耗因为namenode主节点主要维护的是hdfs所有文件的目录树文件信息-block块太小那么需要需要维护的数据块信息会更多而namenode节点的内存是极其有限的-block块太小则会增加寻址时间导致程序一直在寻找block的起始位置&#34;&gt;2.减少namenode内存消耗：因为namenode主节点主要维护的是hdfs所有文件的目录树，文件信息。block块太小，那么需要需要维护的数据块信息会更多，而namenode节点的内存是极其有限的。block块太小，则会增加寻址时间，导致程序一直在寻找block的起始位置。&lt;/h6&gt;
 &lt;h6 id=&#34;3map崩溃当开启map任务时map-task的数据来源是block当然在mapreduce的概念中是读取split切片split和block默认是一对一-当block过大会导致在启动时数据加载时间越长恢复时间越长&#34;&gt;3.map崩溃：当开启map任务时，map task的数据来源是block，当然在mapreduce的概念中是读取split(切片)，split和block默认是一对一。当block过大会导致在启动时数据加载时间越长，恢复时间越长。&lt;/h6&gt;
 &lt;h6 id=&#34;4监管时间问题主节点监管其他节点的情况每个节点会周期性的把完成的工作和状态的更新报告回来-若某个节点保存沉默超过预设的时间间隔主节点宣告该节点状态为死亡并把分配给这个节点的数据发到别的节点-预设的时间间隔是根据数据块-size角度估算的若size设置不合理容易误判节点死亡&#34;&gt;4.监管时间问题：主节点监管其他节点的情况，每个节点会周期性的把完成的工作和状态的更新报告回来。若某个节点保存沉默超过预设的时间间隔，主节点“宣告”该节点状态为死亡，并把分配给这个节点的数据发到别的节点。预设的时间间隔是根据数据块 size角度估算的，若size设置不合理，容易误判节点死亡。&lt;/h6&gt;
