@@ -9,7 +9,7 @@
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
 <title>萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1632714689877">
+<link rel="shortcut icon" href="/favicon.ico?v=1632738473182">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -533,16 +533,58 @@ fs.checkpoint.size: edits达到一定大小时也会触发合并（默认64MB)
 &lt;p&gt;​	HDFS的block块比一般单机文件系统大的多，Hadoop1.x 默认block分块是64M，Hadoop2.x默认是128M。经过测试在上传了2M的文件并非占用了整个block块，而是占用了实际大小，也就是在hdfs当中只用了2M的空间，而不是128M。&lt;/p&gt;
 &lt;h5 id=&#34;block块大小的设计原则&#34;&gt;block块大小的设计原则&lt;/h5&gt;
 &lt;h6 id=&#34;1减少磁盘的寻址时间控制寻址和传输文件所用的时间比例&#34;&gt;1.减少磁盘的寻址时间：控制寻址和传输文件所用的时间比例。&lt;/h6&gt;
-&lt;p&gt;​		一般hdfs的寻址时间为10ms，经过反复测试，当寻址时间为传输时间的**1%**时为最佳传输状态。那么一般的机械硬盘文件读写的速度一般为100M/s，200M/s或者 普通固态为500MB/s,pcie固态的速度可以达到2000MB/s,因此块的大小可以分别设为128MB,256MB,512MB,2048MB 。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;     最佳传输时间为：10ms/0.01=1000ms=1s
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;​			计算出最佳block大小：100MB/s x 1s = 100MB&lt;br&gt;
+&lt;p&gt;​		一般hdfs的寻址时间为10ms，经过反复测试，当寻址时间为传输时间的**1%**时为最佳传输状态。那么一般的机械硬盘文件读写的速度一般为100M/s，200M/s或者 普通固态为500MB/s,pcie固态的速度可以达到2000MB/s,因此块的大小可以分别设为128MB,256MB,512MB,2048MB 。&lt;br&gt;
+​&lt;br&gt;
+​         最佳传输时间为：10ms/0.01=1000ms=1s&lt;br&gt;
+​			计算出最佳block大小：100MB/s x 1s = 100MB&lt;br&gt;
 ​			所以设定block大小一般为128MB。&lt;br&gt;
 ​			经过测试我们现阶段可以说，&lt;strong&gt;block的大小主要取决于磁盘传输速率&lt;/strong&gt;。&lt;/p&gt;
 &lt;h6 id=&#34;2减少namenode内存消耗因为namenode主节点主要维护的是hdfs所有文件的目录树文件信息-block块太小那么需要需要维护的数据块信息会更多而namenode节点的内存是极其有限的-block块太小则会增加寻址时间导致程序一直在寻找block的起始位置&#34;&gt;2.减少namenode内存消耗：因为namenode主节点主要维护的是hdfs所有文件的目录树，文件信息。block块太小，那么需要需要维护的数据块信息会更多，而namenode节点的内存是极其有限的。block块太小，则会增加寻址时间，导致程序一直在寻找block的起始位置。&lt;/h6&gt;
 &lt;h6 id=&#34;3map崩溃当开启map任务时map-task的数据来源是block当然在mapreduce的概念中是读取split切片split和block默认是一对一-当block过大会导致在启动时数据加载时间越长恢复时间越长&#34;&gt;3.map崩溃：当开启map任务时，map task的数据来源是block，当然在mapreduce的概念中是读取split(切片)，split和block默认是一对一。当block过大会导致在启动时数据加载时间越长，恢复时间越长。&lt;/h6&gt;
 &lt;h6 id=&#34;4监管时间问题主节点监管其他节点的情况每个节点会周期性的把完成的工作和状态的更新报告回来-若某个节点保存沉默超过预设的时间间隔主节点宣告该节点状态为死亡并把分配给这个节点的数据发到别的节点-预设的时间间隔是根据数据块-size角度估算的若size设置不合理容易误判节点死亡&#34;&gt;4.监管时间问题：主节点监管其他节点的情况，每个节点会周期性的把完成的工作和状态的更新报告回来。若某个节点保存沉默超过预设的时间间隔，主节点“宣告”该节点状态为死亡，并把分配给这个节点的数据发到别的节点。预设的时间间隔是根据数据块 size角度估算的，若size设置不合理，容易误判节点死亡。&lt;/h6&gt;
 &lt;h6 id=&#34;5网络传输问题-在数据读写计算的时候需要进行网络传输如果block过大会导致网络传输时间增长程序卡顿超时无响应-任务执行的过程中拉取其他节点的block或者失败重试的成本会过高如果block过小则会频繁的进行文件传输对严重占用网络cpu资源&#34;&gt;5.网络传输问题: 在数据读写计算的时候,需要进行网络传输.如果block过大会导致网络传输时间增长,程序卡顿/超时/无响应. 任务执行的过程中拉取其他节点的block或者失败重试的成本会过高.如果block过小,则会频繁的进行文件传输,对严重占用网络/CPU资源.&lt;/h6&gt;
+&lt;h3 id=&#34;32-namenode-datanode&#34;&gt;3.2 Namenode &amp;amp; Datanode&lt;/h3&gt;
+&lt;p&gt;​	 整个HDFS集群由Namenode和Datanode构成master-worker（主从）模式。Namenode负责构建命名空间，管理文件的元数据等，而Datanode负责实际存储数据，负责读写工作&lt;/p&gt;
+&lt;h5 id=&#34;namenode&#34;&gt;Namenode&lt;/h5&gt;
+&lt;p&gt;Namenode存放文件系统树及所有文件、目录的元数据。元数据持久化为2种形式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;fsimage&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;edits&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;但是持久化数据中不包括Block所在的节点列表，及文件的Block分布在集群中的哪些节点上，这些信息是在系统重启的时候重新构建（通过Datanode汇报的Block信息）。&lt;br&gt;
+在HDFS中，Namenode可能成为集群的单点故障，Namenode不可用时，整个文件系统是不可用的。HDFS针对单点故障提供了2种解决机制：&lt;/p&gt;
+&lt;h6 id=&#34;1备份持久化元数据&#34;&gt;1.备份持久化元数据&lt;/h6&gt;
+&lt;p&gt;将文件系统的元数据同时写到多个文件系统， 例如同时将元数据写到本地文件系统及NFS。这些备份操作都是同步的、原子的。&lt;/p&gt;
+&lt;h6 id=&#34;2secondary-namenode&#34;&gt;2.Secondary Namenode&lt;/h6&gt;
+&lt;p&gt;Secondary节点定期合并主Namenode的fsimage和edits， 避免edit log过大，通过创建检查点checkpoint来合并。它会维护一个合并后的fsimage副本， 可用于在Namenode完全崩溃时恢复数据。&lt;/p&gt;
+&lt;p&gt;Secondary Namenode通常运行在另一台机器，因为合并操作需要耗费大量的CPU和内存。其数据落后于Namenode，因此当Namenode完全崩溃时，会出现数据丢失。 通常做法是拷贝NFS中的备份元数据到Second，将其作为新的主Namenode。&lt;br&gt;
+在HA（High Availability高可用性）中可以运行一个Hot Standby，作为热备份，在Active Namenode故障之后，替代原有Namenode成为Active Namenode。&lt;/p&gt;
+&lt;h5 id=&#34;datanode&#34;&gt;Datanode&lt;/h5&gt;
+&lt;p&gt;数据节点负责存储和提取Block，读写请求可能来自namenode，也可能直接来自客户端。数据节点周期性向Namenode汇报自己节点上所存储的Block相关信息。&lt;/p&gt;
+&lt;h3 id=&#34;33-block-caching&#34;&gt;3.3 Block Caching&lt;/h3&gt;
+&lt;p&gt;DataNode通常直接从磁盘读取数据，但是频繁使用的Block可以在内存中缓存。默认情况下，一个Block只有一个数据节点会缓存。但是可以针对每个文件可以个性化配置。&lt;br&gt;
+作业调度器可以利用缓存提升性能，例如MapReduce可以把任务运行在有Block缓存的节点上。&lt;br&gt;
+用户或者应用可以向NameNode发送缓存指令（缓存哪个文件，缓存多久）， 缓存池的概念用于管理一组缓存的权限和资源。&lt;/p&gt;
+&lt;h3 id=&#34;34-hdfs-federation&#34;&gt;3.4 HDFS Federation&lt;/h3&gt;
+&lt;p&gt;我们知道NameNode的内存会制约文件数量，HDFS Federation提供了一种横向扩展NameNode的方式。在Federation模式中，每个NameNode管理命名空间的一部分，例如一个NameNode管理/user目录下的文件， 另一个NameNode管理/share目录下的文件。&lt;br&gt;
+每个NameNode管理一个namespace volumn，所有volumn构成文件系统的元数据。每个NameNode同时维护一个Block Pool，保存Block的节点映射等信息。各NameNode之间是独立的，一个节点的失败不会导致其他节点管理的文件不可用。&lt;br&gt;
+客户端使用mount table将文件路径映射到NameNode。mount table是在Namenode群组之上封装了一层，这一层也是一个Hadoop文件系统的实现，通过viewfs:协议访问。&lt;/p&gt;
+&lt;h3 id=&#34;35-hdfs-hahigh-availability高可用性&#34;&gt;3.5 HDFS HA(High Availability高可用性)&lt;/h3&gt;
+&lt;p&gt;在HDFS集群中，NameNode依然是单点故障（SPOF: Single Point Of Failure）。元数据同时写到多个文件系统以及Second NameNode定期checkpoint有利于保护数据丢失，但是并不能提高可用性。&lt;br&gt;
+这是因为NameNode是唯一一个对文件元数据和file-block映射负责的地方， 当它挂了之后，包括MapReduce在内的作业都无法进行读写。&lt;/p&gt;
+&lt;p&gt;当NameNode故障时，常规的做法是使用元数据备份重新启动一个NameNode。元数据备份可能来源于：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;多文件系统写入中的备份&lt;/li&gt;
+&lt;li&gt;Second NameNode的检查点文件&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;启动新的Namenode之后，需要重新配置客户端和DataNode的NameNode信息。另外重启耗时一般比较久，稍具规模的集群重启经常需要几十分钟甚至数小时，造成重启耗时的原因大致有：&lt;br&gt;
+1） 元数据镜像文件载入到内存耗时较长。&lt;br&gt;
+2） 需要重放edit log&lt;br&gt;
+3） 需要收到来自DataNode的状态报告并且满足条件后才能离开安全模式提供写服务。&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 ">HDFS</a>
