@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://xiaoyao891620610.github.io</id>
     <title>萧瑟</title>
-    <updated>2021-09-27T10:32:38.358Z</updated>
+    <updated>2021-09-28T03:50:10.305Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://xiaoyao891620610.github.io"/>
     <link rel="self" href="https://xiaoyao891620610.github.io/atom.xml"/>
@@ -10,6 +10,239 @@
     <logo>https://xiaoyao891620610.github.io/images/avatar.png</logo>
     <icon>https://xiaoyao891620610.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, 萧瑟</rights>
+    <entry>
+        <title type="html"><![CDATA[MapReduce详解和面临问题的解决方案]]></title>
+        <id>https://xiaoyao891620610.github.io/post/mapreduce-xiang-jie-he-mian-lin-wen-ti-de-jie-jue-fang-an/</id>
+        <link href="https://xiaoyao891620610.github.io/post/mapreduce-xiang-jie-he-mian-lin-wen-ti-de-jie-jue-fang-an/">
+        </link>
+        <updated>2021-09-27T13:37:34.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="1mapreduce的各个执行阶段">1.MapReduce的各个执行阶段</h3>
+<p>​	我们了解了MapReduce的计算模型是由三个阶段组成：map，shuffle，reduce。</p>
+<p>​		Map是映射，负责数据的过滤，通过读取hdfs上的文件block进行切片(inputsplit)，读取记录( recordReader),mapper,combiner(可选)，partitioner分区。这几个阶段对数据进行分析过滤然后通过网络拷贝到reduce阶段。</p>
+<p>​		Reduce是归约，通过网络拷贝处理map的结果，混排(shuffle)，排序(sort)，reducer，输出(output)。</p>
+<p>官方示意图：</p>
+<p>​	<img src="https://xiaoyao891620610.github.io/post-images/1632800978389.png" alt="" loading="lazy"></p>
+<p>​</p>
+<p>​		官方给的MapReduce的工作流程大概是明白map到reduce阶段所要执行的操作，但深入了解的话还是不够的，所以我们写了一个类似开发语言的&quot;Hello Word&quot;,MapReduce通用明白小案例WordCount，简单来说就是计算一个文件内单词出现的次数，也就是词频。</p>
+<p>​		假设文件内的单词是以空格分开，当然其它的也可以，因为可以在代码阶段来设置分割符，内容如下：</p>
+<p>​		hello you</p>
+<p>​		hello me</p>
+<p>​		代码示例：</p>
+<pre><code>package main.java.hadoop001.word;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Iterator;
+
+/**
+ * 把hdfs中的hello.txt文件进行wordCount处理
+ * hello you
+ * hello me
+ *
+ * 处理后
+ * hello 2
+ * me   1
+ * you 1
+ */
+public class WordCountJob {
+    public static void main(String[] args) {
+        try {
+            if(args.length != 2) {
+                System.exit(100);
+            }
+            //job需要配置的参数
+            Configuration conf = new Configuration();
+            Job job = Job.getInstance(conf);
+            //设置集群中找寻这个Job类
+            job.setJarByClass(WordCountJob.class);
+            //指定文件的输出和输入的路径
+            FileInputFormat.setInputPaths(job,new Path(args[0]));
+            FileOutputFormat.setOutputPath(job,new Path(args[1]));
+            //需要指定mapper代码
+            job.setMapperClass(MyMapper.class);
+            //指定k2的类型
+            job.setMapOutputKeyClass(Text.class);
+            //指定v2的类型
+            job.setMapOutputValueClass(LongWritable.class);
+
+            //需要指定reducer
+            job.setReducerClass(MyReducer.class);
+            //指定k3的类型
+            job.setOutputKeyClass(Text.class);
+            //指定v3的类型
+            job.setOutputValueClass(MyReducer.class);
+
+            //提交job任务
+            job.waitForCompletion(true);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    public static class MyMapper extends Mapper&lt;LongWritable, Text,Text,LongWritable&gt;{
+        Logger logger = LoggerFactory.getLogger(MyMapper.class);
+        /**
+         *接受&lt;key,value&gt; 产生&lt;k2,v2&gt;
+         * @param k1
+         * @param v1
+         * @param context
+         * @throws IOException
+         * @throws InterruptedException
+         */
+        @Override
+        protected void map(LongWritable k1, Text v1,Context context)
+                throws IOException, InterruptedException {
+            logger.info(&quot;&lt;k1,v1&gt;=&gt;&quot;+&quot;&lt;&quot;+k1.get()+&quot;,&quot;+v1.toString()+&quot;&gt;&quot;);
+            //k1代表的是每一行首的偏移量，v1代表的是每一行内容 按照空格分割
+            String[] words = v1.toString().split(&quot; &quot;);
+            //循环字符数组
+            for(String word: words){
+                Text key2 = new Text(word);
+                LongWritable val2 = new LongWritable(1L);
+                context.write(key2,val2);
+            }
+        }
+    }
+    /**
+     * 创建自定义的reducer类
+     */
+    public static class MyReducer extends Reducer&lt;Text,LongWritable,Text,LongWritable&gt;{
+        Logger logger = LoggerFactory.getLogger(MyReducer.class);
+        /**
+         * 针对字符出现的次数进行求和 最终出去的是&lt;k3,v3&gt;
+         * @param key
+         * @param values
+         * @param context
+         * @throws IOException
+         * @throws InterruptedException
+         */
+        @Override
+        protected void reduce(Text key, Iterable&lt;LongWritable&gt; values, Reducer&lt;Text, LongWritable, Text, LongWritable&gt;.Context context)
+                throws IOException, InterruptedException {
+            Long sum = 0L;
+            Iterator&lt;LongWritable&gt; it = values.iterator();
+            while (it.hasNext()){
+                sum += it.next().get();
+            }
+            Text k3 = key;
+
+            LongWritable v3 = new LongWritable(sum);
+            logger.info(&quot;&lt;k1,v1&gt;=&gt;&quot;+&quot;&lt;&quot;+k3.toString()+&quot;,&quot;+v3.get()+&quot;&gt;&quot;);
+
+            context.write(k3,v3);
+        }
+    }
+}
+
+</code></pre>
+<p>最终执行的结果是：</p>
+<p>​		hello  2</p>
+<p>​		you    1</p>
+<p>​		me 	1</p>
+<p>代码中的日志可以忽略不计，如果你说，看了WordCount之后还是不明白，那肯定的啊，因为MapReduce整个阶段的切片split，读取记录行和reduce阶段的排序，输出都被进行了封装，我们代码所能实现的就只有map和reduce。</p>
+<h3 id="2mapreduce的job作业-input-split-输入分切片解析">2.MapReduce的job作业 -&gt; input split (输入分/切片)解析</h3>
+<p>懒得画，盗了个图</p>
+<p>​	<img src="https://xiaoyao891620610.github.io/post-images/1632800956166.png" alt="" loading="lazy"></p>
+<p>如图所示，hdfs的文件是被切分成block块的，那么在进行map作业之前，mapreduce会根据输入的文件来逻辑计算，划分分片的大小(input split)，那么每个分片split对应的是一个map task任务，因为我这边也说了是逻辑计算分片的大小，所以并不是数据的本身，而是一个分片的长度和一个记录数据位置的数组。</p>
+<p>​	源码逻辑计算切片代码：</p>
+<pre><code>/** Splits files returned by {@link #listStatus(JobConf)} when
+   * they're too big.*/ 
+  public InputSplit[] getSplits(JobConf job, int numSplits)
+    throws IOException {
+    StopWatch sw = new StopWatch().start();
+    FileStatus[] stats = listStatus(job);
+
+    // Save the number of input files for metrics/loadgen
+    job.setLong(NUM_INPUT_FILES, stats.length);
+    long totalSize = 0;                           // compute total size
+    boolean ignoreDirs = !job.getBoolean(INPUT_DIR_RECURSIVE, false)
+      &amp;&amp; job.getBoolean(INPUT_DIR_NONRECURSIVE_IGNORE_SUBDIRS, false);
+
+    List&lt;FileStatus&gt; files = new ArrayList&lt;&gt;(stats.length);
+    for (FileStatus file: stats) {                // check we have valid files
+      if (file.isDirectory()) {
+        if (!ignoreDirs) {
+          throw new IOException(&quot;Not a file: &quot;+ file.getPath());
+        }
+      } else {
+        files.add(file);
+        totalSize += file.getLen();
+      }
+    }
+
+    long goalSize = totalSize / (numSplits == 0 ? 1 : numSplits);
+    long minSize = Math.max(job.getLong(org.apache.hadoop.mapreduce.lib.input.
+      FileInputFormat.SPLIT_MINSIZE, 1), minSplitSize);
+
+    // generate splits
+    ArrayList&lt;FileSplit&gt; splits = new ArrayList&lt;FileSplit&gt;(numSplits);
+    NetworkTopology clusterMap = new NetworkTopology();
+    for (FileStatus file: files) {
+      Path path = file.getPath();
+      long length = file.getLen();
+      if (length != 0) {
+        FileSystem fs = path.getFileSystem(job);
+        BlockLocation[] blkLocations;
+        if (file instanceof LocatedFileStatus) {
+          blkLocations = ((LocatedFileStatus) file).getBlockLocations();
+        } else {
+          blkLocations = fs.getFileBlockLocations(file, 0, length);
+        }
+        if (isSplitable(fs, path)) {
+          long blockSize = file.getBlockSize();
+          long splitSize = computeSplitSize(goalSize, minSize, blockSize);
+
+          long bytesRemaining = length;
+          while (((double) bytesRemaining)/splitSize &gt; SPLIT_SLOP) {
+            String[][] splitHosts = getSplitHostsAndCachedHosts(blkLocations,
+                length-bytesRemaining, splitSize, clusterMap);
+            splits.add(makeSplit(path, length-bytesRemaining, splitSize,
+                splitHosts[0], splitHosts[1]));
+            bytesRemaining -= splitSize;
+          }
+
+          if (bytesRemaining != 0) {
+            String[][] splitHosts = getSplitHostsAndCachedHosts(blkLocations, length
+                - bytesRemaining, bytesRemaining, clusterMap);
+            splits.add(makeSplit(path, length - bytesRemaining, bytesRemaining,
+                splitHosts[0], splitHosts[1]));
+          }
+        } else {
+          if (LOG.isDebugEnabled()) {
+            // Log only if the file is big enough to be splitted
+            if (length &gt; Math.min(file.getBlockSize(), minSize)) {
+              LOG.debug(&quot;File is not splittable so no parallelization &quot;
+                  + &quot;is possible: &quot; + file.getPath());
+            }
+          }
+          String[][] splitHosts = getSplitHostsAndCachedHosts(blkLocations,0,length,clusterMap);
+          splits.add(makeSplit(path, 0, length, splitHosts[0], splitHosts[1]));
+        }
+      } else { 
+        //Create empty hosts array for zero length files
+        splits.add(makeSplit(path, 0, length, new String[0]));
+      }
+    }
+    sw.stop();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(&quot;Total # of splits generated by getSplits: &quot; + splits.size()
+          + &quot;, TimeTaken: &quot; + sw.now(TimeUnit.MILLISECONDS));
+    }
+    return splits.toArray(new FileSplit[splits.size()]);
+  }
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[HDFS]]></title>
         <id>https://xiaoyao891620610.github.io/post/hdfs/</id>
