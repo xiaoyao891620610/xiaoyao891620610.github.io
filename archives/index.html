@@ -9,7 +9,7 @@
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
 <title>萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1632801006126">
+<link rel="shortcut icon" href="/favicon.ico?v=1632841116454">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -685,70 +685,86 @@ public class WordCountJob {
 &lt;p&gt;懒得画，盗了个图&lt;/p&gt;
 &lt;p&gt;​	&lt;img src=&#34;https://xiaoyao891620610.github.io/post-images/1632800956166.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34;&gt;&lt;/p&gt;
 &lt;p&gt;如图所示，hdfs的文件是被切分成block块的，那么在进行map作业之前，mapreduce会根据输入的文件来逻辑计算，划分分片的大小(input split)，那么每个分片split对应的是一个map task任务，因为我这边也说了是逻辑计算分片的大小，所以并不是数据的本身，而是一个分片的长度和一个记录数据位置的数组。&lt;/p&gt;
+&lt;h4 id=&#34;21逻辑切片的计算源码&#34;&gt;2.1逻辑切片的计算源码&lt;/h4&gt;
 &lt;p&gt;​	源码逻辑计算切片代码：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;/** Splits files returned by {@link #listStatus(JobConf)} when
-   * they&#39;re too big.*/ 
-  public InputSplit[] getSplits(JobConf job, int numSplits)
-    throws IOException {
+&lt;pre&gt;&lt;code&gt;/** 
+   * Generate the list of files and make them into FileSplits.
+   * @param job the job context
+   * @throws IOException
+   */
+  public List&amp;lt;InputSplit&amp;gt; getSplits(JobContext job) throws IOException {
     StopWatch sw = new StopWatch().start();
-    FileStatus[] stats = listStatus(job);
-
-    // Save the number of input files for metrics/loadgen
-    job.setLong(NUM_INPUT_FILES, stats.length);
-    long totalSize = 0;                           // compute total size
-    boolean ignoreDirs = !job.getBoolean(INPUT_DIR_RECURSIVE, false)
-      &amp;amp;&amp;amp; job.getBoolean(INPUT_DIR_NONRECURSIVE_IGNORE_SUBDIRS, false);
-
-    List&amp;lt;FileStatus&amp;gt; files = new ArrayList&amp;lt;&amp;gt;(stats.length);
-    for (FileStatus file: stats) {                // check we have valid files
-      if (file.isDirectory()) {
-        if (!ignoreDirs) {
-          throw new IOException(&amp;quot;Not a file: &amp;quot;+ file.getPath());
-        }
-      } else {
-        files.add(file);
-        totalSize += file.getLen();
-      }
-    }
-
-    long goalSize = totalSize / (numSplits == 0 ? 1 : numSplits);
-    long minSize = Math.max(job.getLong(org.apache.hadoop.mapreduce.lib.input.
-      FileInputFormat.SPLIT_MINSIZE, 1), minSplitSize);
+    //最小切片(split)默认配置
+    //SPLIT_MINSIZE=&amp;quot;mapreduce.input.fileinputformat.split.minsize&amp;quot;;
+    //调用方法getMinSplitSize(job){
+    //return job.getConfiguration().getLong(SPLIT_MINSIZE, 1L)};
+    //默认值0L
+    //与默认值getFormatMinSplitSize(){return 1;}
+    //比较
+    //最后取最大值1L
+    long minSize = Math.max(getFormatMinSplitSize(), getMinSplitSize(job));
+    //获取最大切片值
+    //public static long getMaxSplitSize(JobContext context) {
+    //return context.getConfiguration().getLong(SPLIT_MAXSIZE, 
+                                              Long.MAX_VALUE);
+  	//}
+  	//Long.MAX_VALUE 为最大值
+    long maxSize = getMaxSplitSize(job);
 
     // generate splits
-    ArrayList&amp;lt;FileSplit&amp;gt; splits = new ArrayList&amp;lt;FileSplit&amp;gt;(numSplits);
-    NetworkTopology clusterMap = new NetworkTopology();
+    List&amp;lt;InputSplit&amp;gt; splits = new ArrayList&amp;lt;InputSplit&amp;gt;();
+    //读取作业输入文件
+    List&amp;lt;FileStatus&amp;gt; files = listStatus(job);
+
+    boolean ignoreDirs = !getInputDirRecursive(job)
+      &amp;amp;&amp;amp; job.getConfiguration().getBoolean(INPUT_DIR_NONRECURSIVE_IGNORE_SUBDIRS, false);
     for (FileStatus file: files) {
+      if (ignoreDirs &amp;amp;&amp;amp; file.isDirectory()) {
+        continue;
+      }
+      //读取文件路径
       Path path = file.getPath();
+      //计算文件长度
       long length = file.getLen();
       if (length != 0) {
-        FileSystem fs = path.getFileSystem(job);
         BlockLocation[] blkLocations;
         if (file instanceof LocatedFileStatus) {
           blkLocations = ((LocatedFileStatus) file).getBlockLocations();
         } else {
+          FileSystem fs = path.getFileSystem(job.getConfiguration());
           blkLocations = fs.getFileBlockLocations(file, 0, length);
         }
-        if (isSplitable(fs, path)) {
+        if (isSplitable(job, path)) {
+          //获取文件block块大小 默认134217728Byte(128M)
           long blockSize = file.getBlockSize();
-          long splitSize = computeSplitSize(goalSize, minSize, blockSize);
-
+          //确定最终切片(split)的大小
+          //protected long computeSplitSize(long blockSize, long minSize,
+          //                       long maxSize) {
+    	  //return Math.max(minSize, Math.min(maxSize, blockSize));
+  		  //	}
+  		  //因为Hadoop2.x之后默认的block值大小为128M，所以最终所得的切片值为128M，也就是134217728Byte
+          long splitSize = computeSplitSize(blockSize, minSize, maxSize);
+		  //block切片的剩余split大小(Byte)
           long bytesRemaining = length;
+          //SPLIT_SLOP 溢出值为1.1L   SPLIT_SLOP = 1.1
+          //所以获取的文件最大字节数length除以每个切片的字节splitSize如果大于1.1的话将会循环对文件进行切片
           while (((double) bytesRemaining)/splitSize &amp;gt; SPLIT_SLOP) {
-            String[][] splitHosts = getSplitHostsAndCachedHosts(blkLocations,
-                length-bytesRemaining, splitSize, clusterMap);
+            int blkIndex = getBlockIndex(blkLocations, length-bytesRemaining);
             splits.add(makeSplit(path, length-bytesRemaining, splitSize,
-                splitHosts[0], splitHosts[1]));
+                        blkLocations[blkIndex].getHosts(),
+                        blkLocations[blkIndex].getCachedHosts()));
+            //递减操作
             bytesRemaining -= splitSize;
           }
-
+		  //最终被切片剩下的block存为单独的split
           if (bytesRemaining != 0) {
-            String[][] splitHosts = getSplitHostsAndCachedHosts(blkLocations, length
-                - bytesRemaining, bytesRemaining, clusterMap);
-            splits.add(makeSplit(path, length - bytesRemaining, bytesRemaining,
-                splitHosts[0], splitHosts[1]));
+          	//计算文件分块的索引，计算了spilt位于某个block块中
+            int blkIndex = getBlockIndex(blkLocations, length-bytesRemaining);
+            splits.add(makeSplit(path, length-bytesRemaining, bytesRemaining,
+                       blkLocations[blkIndex].getHosts(),
+                       blkLocations[blkIndex].getCachedHosts()));
           }
-        } else {
+        } else { // not splitable
           if (LOG.isDebugEnabled()) {
             // Log only if the file is big enough to be splitted
             if (length &amp;gt; Math.min(file.getBlockSize(), minSize)) {
@@ -756,22 +772,151 @@ public class WordCountJob {
                   + &amp;quot;is possible: &amp;quot; + file.getPath());
             }
           }
-          String[][] splitHosts = getSplitHostsAndCachedHosts(blkLocations,0,length,clusterMap);
-          splits.add(makeSplit(path, 0, length, splitHosts[0], splitHosts[1]));
+          splits.add(makeSplit(path, 0, length, blkLocations[0].getHosts(),
+                      blkLocations[0].getCachedHosts()));
         }
       } else { 
         //Create empty hosts array for zero length files
         splits.add(makeSplit(path, 0, length, new String[0]));
       }
     }
+    // Save the number of input files for metrics/loadgen
+    job.getConfiguration().setLong(NUM_INPUT_FILES, files.size());
     sw.stop();
     if (LOG.isDebugEnabled()) {
       LOG.debug(&amp;quot;Total # of splits generated by getSplits: &amp;quot; + splits.size()
           + &amp;quot;, TimeTaken: &amp;quot; + sw.now(TimeUnit.MILLISECONDS));
     }
-    return splits.toArray(new FileSplit[splits.size()]);
+    return splits;
   }
 &lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这里我已经将怎么划分split的计算逻辑做了注释，所以当我们在默认的配置下，每个切片的大小约等于blocksize的大小，因为设置的溢出值SPLIT_SLOP是1.1，等于，大于，小于blocksize都是可能的bytesRemaining/splitSize &amp;gt; 1.1)。大概也就是134217728Byte(128M)。&lt;/p&gt;
+&lt;h4 id=&#34;22-recordreader读取split内的行记录&#34;&gt;2.2 recordReader读取split内的行记录&lt;/h4&gt;
+&lt;p&gt;​	先贴上源码&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;public void initialize(InputSplit genericSplit,
+                         TaskAttemptContext context) throws IOException {
+    FileSplit split = (FileSplit) genericSplit;
+    Configuration job = context.getConfiguration();
+    this.maxLineLength = job.getInt(MAX_LINE_LENGTH, Integer.MAX_VALUE);
+    //获取split分片的起始偏移量
+    start = split.getStart();
+    //split分片的大小(Byte)
+    end = start + split.getLength();
+    //split分片所在的文件路径
+    final Path file = split.getPath();
+
+    // open the file and seek to the start of the split
+    final FileSystem fs = file.getFileSystem(job);
+    fileIn = fs.open(file);
+    
+    CompressionCodec codec = new CompressionCodecFactory(job).getCodec(file);
+    //判断是否是压缩文件
+    if (null!=codec) {
+      isCompressedInput = true;
+      decompressor = CodecPool.getDecompressor(codec);
+      if (codec instanceof SplittableCompressionCodec) {
+        final SplitCompressionInputStream cIn =
+          ((SplittableCompressionCodec)codec).createInputStream(
+            fileIn, decompressor, start, end,
+            SplittableCompressionCodec.READ_MODE.BYBLOCK);
+        in = new CompressedSplitLineReader(cIn, job,
+            this.recordDelimiterBytes);
+        start = cIn.getAdjustedStart();
+        end = cIn.getAdjustedEnd();
+        filePosition = cIn;
+      } else {
+        if (start != 0) {
+          // So we have a split that is only part of a file stored using
+          // a Compression codec that cannot be split.
+          throw new IOException(&amp;quot;Cannot seek in &amp;quot; +
+              codec.getClass().getSimpleName() + &amp;quot; compressed stream&amp;quot;);
+        }
+
+        in = new SplitLineReader(codec.createInputStream(fileIn,
+            decompressor), job, this.recordDelimiterBytes);
+        filePosition = fileIn;
+      }
+    } else {
+      //正常文件分支 
+      fileIn.seek(start); //定位输入文件的起始位置
+      in = new UncompressedSplitLineReader(
+          fileIn, job, this.recordDelimiterBytes, split.getLength());
+      filePosition = fileIn;
+    }
+    // If this is not the first split, we always throw away first record
+    // because we always (except the last split) read one extra line in
+    // next() method.
+    //判断是否是属于第一个split的起始位置0，如果不是那么会忽略掉第一行的数据
+    if (start != 0) {
+      start += in.readLine(new Text(), 0, maxBytesToConsume(start));
+    }
+    this.pos = start;
+  }
+  public boolean nextKeyValue() throws IOException {
+    if (key == null) {
+      key = new LongWritable();
+    }
+    key.set(pos);
+    if (value == null) {
+      value = new Text();
+    }
+    int newSize = 0;
+    // We always read one extra line, which lies outside the upper
+    // split limit i.e. (end - 1)
+    //判断当前读取行记录的偏移量小于当前split &amp;amp; 当前读取已经到下一个split的时候继续读取，也就是说总会读取下一行，或者读取下一个split的第一行，然后重新赋值行读取所在的偏移量pos
+    while (getFilePosition() &amp;lt;= end || in.needAdditionalRecordAfterSplit()) {
+      if (pos == 0) {
+        newSize = skipUtfByteOrderMark();
+      } else {
+        newSize = in.readLine(value, maxLineLength, maxBytesToConsume(pos));
+        pos += newSize;
+      }
+
+      if ((newSize == 0) || (newSize &amp;lt; maxLineLength)) {
+        break;
+      }
+
+      // line too long. try again
+      LOG.info(&amp;quot;Skipped line of size &amp;quot; + newSize + &amp;quot; at pos &amp;quot; + 
+               (pos - newSize));
+    }
+    if (newSize == 0) {
+      key = null;
+      value = null;
+      return false;
+    } else {
+      return true;
+    }
+  }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;因为每个block块我们是按照逻辑切片(split)的，通俗明白点就是文件内的字节偏移量。所以我们面临的一个问题就是，当一行数据被切分到两个split中，是怎么不会读取重复或者读取少记录的。&lt;/p&gt;
+&lt;p&gt;首先解决的是判断当前偏移量是否是为0，或者可以说是不是在第一个split片当中，如果不是，那么行读取器会往下一行开始读取，也就是忽略掉第一行。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;if (start != 0) {
+   start += in.readLine(new Text(), 0, maxBytesToConsume(start));
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;行阅读器会判断当前偏移量和当前的所属分片split，默认读取下一个split的第一行&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt; // We always read one extra line, which lies outside the upper
+ // split limit i.e. (end - 1)
+ //判断当前读取行记录的偏移量小于当前split &amp;amp; 当前读取已经到下一个split的时候继续读取，也就是说总会读取下一行，或者读取下一个split的第一行，然后重新赋值行读取所在的偏移量pos
+ while (getFilePosition() &amp;lt;= end || in.needAdditionalRecordAfterSplit()) {
+      if (pos == 0) {
+        newSize = skipUtfByteOrderMark();
+      } else {
+        newSize = in.readLine(value, maxLineLength, maxBytesToConsume(pos));
+        pos += newSize;
+      }
+
+      if ((newSize == 0) || (newSize &amp;lt; maxLineLength)) {
+        break;
+      }
+
+      // line too long. try again
+      LOG.info(&amp;quot;Skipped line of size &amp;quot; + newSize + &amp;quot; at pos &amp;quot; + 
+               (pos - newSize));
+    }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;结论：readLine()的功能是读取一行的数据到Text中，因为在分割FileSplit时是基于size的，如果一行被分割到两个split中，比如s1和s2中，在读取s1中的最后一行数据时，会一直读取到s2中的第一个换行符，这是在nextKeyValue()方法中实现的，而在处理s2时，则要将已经读取的数据跳过以避免重复读取，也就是直接开始读取s2的第二行，这是在构造方法中initialize实现的。&lt;/p&gt;
 ">MapReduce详解和面临问题的解决方案</a>
       </div>
       
