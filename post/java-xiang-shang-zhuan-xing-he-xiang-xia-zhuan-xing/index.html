@@ -9,7 +9,7 @@
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
 <title>JAVA-向上转型和向下转型 | 萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1632841442593">
+<link rel="shortcut icon" href="/favicon.ico?v=1632877144202">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -1285,7 +1285,7 @@ public class WordCountJob {
     }
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;结论：readLine()的功能是读取一行的数据到Text中，因为在分割FileSplit时是基于size的，如果一行被分割到两个split中，比如s1和s2中，在读取s1中的最后一行数据时，会一直读取到s2中的第一个换行符，这是在nextKeyValue()方法中实现的，而在处理s2时，则要将已经读取的数据跳过以避免重复读取，也就是直接开始读取s2的第二行，这是在构造方法中initialize实现的。&lt;/p&gt;
-">MapReduce详解和面临问题的解决方案</a>
+">MapReduce作业切片(InputSplit) & RecordReader</a>
       </div>
       
       <div class="item">

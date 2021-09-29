@@ -8,8 +8,8 @@
 <meta name="keywords" content="Security">
 <meta name="description" content="温故而知新">
 <meta name="theme-color" content="#000">
-<title>MapReduce详解和面临问题的解决方案 | 萧瑟</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1632841442593">
+<title>MapReduce作业切片(InputSplit) &amp; RecordReader | 萧瑟</title>
+<link rel="shortcut icon" href="/favicon.ico?v=1632877144202">
 <link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -38,7 +38,7 @@
 
 
 
-  <meta name="description" content="MapReduce详解和面临问题的解决方案" />
+  <meta name="description" content="MapReduce作业切片(InputSplit) & RecordReader" />
   <meta name="keywords" content="" />
 </head>
 
@@ -261,7 +261,7 @@
             <section class="post-header">
   <h1 class="post-title">
     <a class="post-title-link" href="https://xiaoyao891620610.github.io/post/mapreduce-xiang-jie-he-mian-lin-wen-ti-de-jie-jue-fang-an/">
-      MapReduce详解和面临问题的解决方案
+      MapReduce作业切片(InputSplit) &amp; RecordReader
     </a>
   </h1>
   <div class="post-meta">
@@ -672,7 +672,7 @@ public class WordCountJob {
     </li>
     <li class="post-copyright-link">
       <strong class="language" data-lan="link">本文链接：</strong>
-      <a href="https://xiaoyao891620610.github.io/post/mapreduce-xiang-jie-he-mian-lin-wen-ti-de-jie-jue-fang-an/" title="MapReduce详解和面临问题的解决方案">https://xiaoyao891620610.github.io/post/mapreduce-xiang-jie-he-mian-lin-wen-ti-de-jie-jue-fang-an/</a>
+      <a href="https://xiaoyao891620610.github.io/post/mapreduce-xiang-jie-he-mian-lin-wen-ti-de-jie-jue-fang-an/" title="MapReduce作业切片(InputSplit) &amp; RecordReader">https://xiaoyao891620610.github.io/post/mapreduce-xiang-jie-he-mian-lin-wen-ti-de-jie-jue-fang-an/</a>
     </li>
     <li class="post-copyright-license">
       <strong class="language" data-lan="copyright">版权声明： </strong>
@@ -1576,7 +1576,7 @@ public class WordCountJob {
     }
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;结论：readLine()的功能是读取一行的数据到Text中，因为在分割FileSplit时是基于size的，如果一行被分割到两个split中，比如s1和s2中，在读取s1中的最后一行数据时，会一直读取到s2中的第一个换行符，这是在nextKeyValue()方法中实现的，而在处理s2时，则要将已经读取的数据跳过以避免重复读取，也就是直接开始读取s2的第二行，这是在构造方法中initialize实现的。&lt;/p&gt;
-">MapReduce详解和面临问题的解决方案</a>
+">MapReduce作业切片(InputSplit) & RecordReader</a>
       </div>
       
       <div class="item">
